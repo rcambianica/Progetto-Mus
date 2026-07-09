@@ -26,11 +26,20 @@ import {
     clearWaveform
 } from "./ui/WaveformView.js";
 
+import {
+    AudioPlayer
+} from "./audio/AudioPlayer.js";
+
+let originalPlayer = null;
+let originalPlaybackAnimationId = null;
+let isUserSeekingOriginal = false;
+
 document.addEventListener("DOMContentLoaded", initializeApp);
 
 function initializeApp() {
     bindAudioContextControls();
     bindAudioInputControls();
+    bindOriginalPlaybackControls();
     bindWindowResize();
 
     subscribe(render);
@@ -81,6 +90,8 @@ function bindAudioInputControls() {
 
             setOriginalBuffer(audioBuffer);
             setOriginalInfo(info);
+
+            setupOriginalPlayer(audioContext, audioBuffer);
         } catch (error) {
             console.error(error);
             alert(error.message);
@@ -94,10 +105,99 @@ function bindWindowResize() {
     });
 }
 
+function bindOriginalPlaybackControls() {
+    const playButton =
+        document.getElementById("originalPlayBtn");
+
+    const pauseButton =
+        document.getElementById("originalPauseBtn");
+
+    const stopButton =
+        document.getElementById("originalStopBtn");
+
+    const seekSlider =
+        document.getElementById("originalSeekSlider");
+
+    playButton.addEventListener("click", async () => {
+        try {
+            await resumeAudioContext();
+
+            if (!originalPlayer && state.originalBuffer) {
+                originalPlayer =
+                    new AudioPlayer(state.audioContext);
+
+                originalPlayer.setBuffer(state.originalBuffer);
+            }
+
+            if (!originalPlayer) {
+                throw new Error("No original audio loaded.");
+            }
+
+            originalPlayer.play();
+            startOriginalPlaybackAnimation();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    });
+
+    pauseButton.addEventListener("click", () => {
+        if (!originalPlayer) {
+            return;
+        }
+
+        originalPlayer.pause();
+        stopOriginalPlaybackAnimation();
+        updateOriginalPlaybackUI();
+    });
+
+    stopButton.addEventListener("click", () => {
+        if (!originalPlayer) {
+            return;
+        }
+
+        originalPlayer.stop();
+        stopOriginalPlaybackAnimation();
+        updateOriginalPlaybackUI();
+    });
+
+    seekSlider.addEventListener("input", () => {
+        isUserSeekingOriginal = true;
+
+        updateOriginalCurrentTimeFromSlider();
+    });
+
+    seekSlider.addEventListener("change", () => {
+        if (!originalPlayer) {
+            return;
+        }
+
+        const durationMs =
+            originalPlayer.getDurationMs();
+
+        const ratio =
+            Number(seekSlider.value) / 1000;
+
+        const targetTimeMs =
+            durationMs * ratio;
+
+        originalPlayer.seek(targetTimeMs);
+
+        isUserSeekingOriginal = false;
+
+        updateOriginalPlaybackUI();
+
+        if (originalPlayer.isPlaying) {
+            startOriginalPlaybackAnimation();
+        }
+    });
+}
+
 function render(currentState) {
     renderAudioContextStatus(currentState);
     renderOriginalAudioInfo(currentState);
     renderOriginalWaveform(currentState);
+    updateOriginalPlaybackUI();
 }
 
 function renderAudioContextStatus(currentState) {
@@ -181,4 +281,108 @@ function renderOriginalWaveform(currentState) {
         canvas,
         currentState.originalBuffer
     );
+}
+
+function setupOriginalPlayer(audioContext, audioBuffer) {
+    if (!originalPlayer) {
+        originalPlayer =
+            new AudioPlayer(audioContext);
+    }
+
+    originalPlayer.setBuffer(audioBuffer);
+
+    updateOriginalPlaybackUI();
+}
+
+function startOriginalPlaybackAnimation() {
+    stopOriginalPlaybackAnimation();
+
+    function tick() {
+        updateOriginalPlaybackUI();
+
+        if (
+            originalPlayer &&
+            originalPlayer.isPlaying
+        ) {
+            originalPlaybackAnimationId =
+                requestAnimationFrame(tick);
+        }
+    }
+
+    originalPlaybackAnimationId =
+        requestAnimationFrame(tick);
+}
+
+function stopOriginalPlaybackAnimation() {
+    if (originalPlaybackAnimationId !== null) {
+        cancelAnimationFrame(originalPlaybackAnimationId);
+        originalPlaybackAnimationId = null;
+    }
+}
+
+function updateOriginalPlaybackUI() {
+    const seekSlider =
+        document.getElementById("originalSeekSlider");
+
+    const currentTimeElement =
+        document.getElementById("originalCurrentTime");
+
+    const totalTimeElement =
+        document.getElementById("originalTotalTime");
+
+    if (!state.originalBuffer || !originalPlayer) {
+        seekSlider.value = 0;
+        currentTimeElement.textContent = "0:00.000";
+        totalTimeElement.textContent = "0:00.000";
+        return;
+    }
+
+    const currentTimeMs =
+        originalPlayer.getCurrentTimeMs();
+
+    const durationMs =
+        originalPlayer.getDurationMs();
+
+    currentTimeElement.textContent =
+        formatDuration(currentTimeMs);
+
+    totalTimeElement.textContent =
+        formatDuration(durationMs);
+
+    if (!isUserSeekingOriginal && durationMs > 0) {
+        seekSlider.value =
+            Math.round(
+                (currentTimeMs / durationMs) * 1000
+            );
+    }
+}
+
+function updateOriginalCurrentTimeFromSlider() {
+    const seekSlider =
+        document.getElementById("originalSeekSlider");
+
+    const currentTimeElement =
+        document.getElementById("originalCurrentTime");
+
+    const totalTimeElement =
+        document.getElementById("originalTotalTime");
+
+    if (!originalPlayer) {
+        return;
+    }
+
+    const durationMs =
+        originalPlayer.getDurationMs();
+
+    const ratio =
+        Number(seekSlider.value) / 1000;
+
+    const previewTimeMs =
+        durationMs * ratio;
+
+    currentTimeElement.textContent =
+        formatDuration(previewTimeMs);
+
+    totalTimeElement.textContent =
+        formatDuration(durationMs);
 }

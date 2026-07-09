@@ -46,3 +46,17 @@ span {
     border-radius: 6px;
     background: #ffffff;
 }
+
+.playback-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.playback-controls button {
+    width: auto;
+}
+
+input[type="range"] {
+    width: 100%;
+}
