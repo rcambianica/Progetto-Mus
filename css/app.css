@@ -60,3 +60,12 @@ span {
 input[type="range"] {
     width: 100%;
 }
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+#recordingStatus {
+    font-weight: 700;
+}

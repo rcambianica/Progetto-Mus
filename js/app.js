@@ -30,9 +30,16 @@ import {
     AudioPlayer
 } from "./audio/AudioPlayer.js";
 
+import {
+    MicrophoneRecorder
+} from "./audio/MicrophoneRecorder.js";
+
 let originalPlayer = null;
 let originalPlaybackAnimationId = null;
 let isUserSeekingOriginal = false;
+
+let microphoneRecorder = null;
+let recordingAnimationId = null;
 
 document.addEventListener("DOMContentLoaded", initializeApp);
 
@@ -40,6 +47,7 @@ function initializeApp() {
     bindAudioContextControls();
     bindAudioInputControls();
     bindOriginalPlaybackControls();
+    bindMicrophoneRecordingControls();
     bindWindowResize();
 
     subscribe(render);
@@ -193,10 +201,76 @@ function bindOriginalPlaybackControls() {
     });
 }
 
+function bindMicrophoneRecordingControls() {
+    const startButton =
+        document.getElementById("startRecordingBtn");
+
+    const stopButton =
+        document.getElementById("stopRecordingBtn");
+
+    startButton.addEventListener("click", async () => {
+        try {
+            await resumeAudioContext();
+
+            if (!microphoneRecorder) {
+                microphoneRecorder =
+                    new MicrophoneRecorder();
+            }
+
+            await microphoneRecorder.start();
+
+            startButton.disabled = true;
+            stopButton.disabled = false;
+
+            renderRecordingStatus("recording");
+
+            startRecordingTimer();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+
+            renderRecordingStatus("error");
+        }
+    });
+
+    stopButton.addEventListener("click", async () => {
+        try {
+            if (!microphoneRecorder) {
+                return;
+            }
+
+            const audioBlob =
+                await microphoneRecorder.stop();
+
+            stopRecordingTimer();
+
+            startButton.disabled = false;
+            stopButton.disabled = true;
+
+            renderRecordingStatus("processing");
+
+            await useRecordedBlobAsOriginalAudio(audioBlob);
+
+            renderRecordingStatus("inactive");
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+
+            stopRecordingTimer();
+
+            startButton.disabled = false;
+            stopButton.disabled = true;
+
+            renderRecordingStatus("error");
+        }
+    });
+}
+
 function render(currentState) {
     renderAudioContextStatus(currentState);
     renderOriginalAudioInfo(currentState);
     renderOriginalWaveform(currentState);
+    renderRecordingStatus(currentState);
     updateOriginalPlaybackUI();
 }
 
@@ -281,6 +355,23 @@ function renderOriginalWaveform(currentState) {
         canvas,
         currentState.originalBuffer
     );
+}
+
+function renderRecordingStatus(status) {
+    const statusElement =
+        document.getElementById("recordingStatus");
+
+    const mimeTypeElement =
+        document.getElementById("recordingMimeType");
+
+    statusElement.textContent = status;
+
+    if (microphoneRecorder) {
+        mimeTypeElement.textContent =
+            microphoneRecorder.getMimeType();
+    } else {
+        mimeTypeElement.textContent = "-";
+    }
 }
 
 function setupOriginalPlayer(audioContext, audioBuffer) {
@@ -385,4 +476,120 @@ function updateOriginalCurrentTimeFromSlider() {
 
     totalTimeElement.textContent =
         formatDuration(durationMs);
+}
+
+async function useRecordedBlobAsOriginalAudio(audioBlob) {
+    const audioContext =
+        await resumeAudioContext();
+
+    const extension =
+        getExtensionFromMimeType(audioBlob.type);
+
+    const fileName =
+        `microphone-recording-${Date.now()}.${extension}`;
+
+    const recordedFile =
+        new File(
+            [audioBlob],
+            fileName,
+            {
+                type: audioBlob.type
+            }
+        );
+
+    const audioBuffer =
+        await loadAudioFile(recordedFile, audioContext);
+
+    const info =
+        analyzeAudioBuffer(audioBuffer);
+
+    if (originalPlayer) {
+        originalPlayer.stop();
+        stopOriginalPlaybackAnimation();
+    }
+
+    setOriginalFile(recordedFile);
+    setOriginalBuffer(audioBuffer);
+    setOriginalInfo(info);
+
+    setupOriginalPlayer(audioContext, audioBuffer);
+
+    const audioFileInput =
+        document.getElementById("audioFileInput");
+
+    audioFileInput.value = "";
+
+    render(state);
+}
+
+function getExtensionFromMimeType(mimeType) {
+    if (!mimeType) {
+        return "webm";
+    }
+
+    if (mimeType.includes("ogg")) {
+        return "ogg";
+    }
+
+    if (mimeType.includes("mp4")) {
+        return "mp4";
+    }
+
+    if (mimeType.includes("wav")) {
+        return "wav";
+    }
+
+    if (mimeType.includes("mpeg")) {
+        return "mp3";
+    }
+
+    return "webm";
+}
+
+function startRecordingTimer() {
+    stopRecordingTimer();
+
+    function tick() {
+        updateRecordingTime();
+
+        if (
+            microphoneRecorder &&
+            microphoneRecorder.isRecording
+        ) {
+            recordingAnimationId =
+                requestAnimationFrame(tick);
+        }
+    }
+
+    recordingAnimationId =
+        requestAnimationFrame(tick);
+}
+
+function stopRecordingTimer() {
+    if (recordingAnimationId !== null) {
+        cancelAnimationFrame(recordingAnimationId);
+        recordingAnimationId = null;
+    }
+
+    updateRecordingTime();
+}
+
+function updateRecordingTime() {
+    const recordingTimeElement =
+        document.getElementById("recordingTime");
+
+    if (
+        !microphoneRecorder ||
+        !microphoneRecorder.isRecording
+    ) {
+        recordingTimeElement.textContent =
+            "0:00.000";
+
+        return;
+    }
+
+    recordingTimeElement.textContent =
+        formatDuration(
+            microphoneRecorder.getElapsedMs()
+        );
 }
