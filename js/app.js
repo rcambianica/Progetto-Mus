@@ -229,6 +229,11 @@ function bindMicrophoneRecordingControls() {
             console.error(error);
             alert(error.message);
 
+            stopRecordingTimer();
+
+            startButton.disabled = false;
+            stopButton.disabled = true;
+
             renderRecordingStatus("error");
         }
     });
@@ -270,7 +275,6 @@ function render(currentState) {
     renderAudioContextStatus(currentState);
     renderOriginalAudioInfo(currentState);
     renderOriginalWaveform(currentState);
-    renderRecordingStatus(currentState);
     updateOriginalPlaybackUI();
 }
 

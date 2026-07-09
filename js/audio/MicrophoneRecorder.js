@@ -25,23 +25,22 @@ export class MicrophoneRecorder {
             );
         }
 
-        this.stream =
-            await navigator.mediaDevices.getUserMedia({
-                audio: true
-            });
+        this.stream = await navigator.mediaDevices.getUserMedia({
+            audio: true
+        });
 
         this.chunks = [];
 
-        const selectedMimeType =
-            getSupportedAudioMimeType();
+        const selectedMimeType = getSupportedAudioMimeType();
 
-        const options =
-            selectedMimeType
-                ? { mimeType: selectedMimeType }
-                : undefined;
+        const options = selectedMimeType
+            ? { mimeType: selectedMimeType }
+            : undefined;
 
-        this.mediaRecorder =
-            new MediaRecorder(this.stream, options);
+        this.mediaRecorder = new MediaRecorder(
+            this.stream,
+            options
+        );
 
         this.mimeType =
             this.mediaRecorder.mimeType ||
@@ -70,14 +69,13 @@ export class MicrophoneRecorder {
 
         const recorder = this.mediaRecorder;
 
-        const stoppedPromise =
-            new Promise(resolve => {
-                recorder.addEventListener(
-                    "stop",
-                    resolve,
-                    { once: true }
-                );
-            });
+        const stoppedPromise = new Promise(resolve => {
+            recorder.addEventListener(
+                "stop",
+                resolve,
+                { once: true }
+            );
+        });
 
         recorder.stop();
 
@@ -92,10 +90,9 @@ export class MicrophoneRecorder {
             this.chunks[0]?.type ||
             "audio/webm";
 
-        const audioBlob =
-            new Blob(this.chunks, {
-                type: blobType
-            });
+        const audioBlob = new Blob(this.chunks, {
+            type: blobType
+        });
 
         this.mediaRecorder = null;
         this.stream = null;
