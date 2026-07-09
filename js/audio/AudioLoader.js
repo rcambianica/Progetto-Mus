@@ -1,19 +1,15 @@
-let audioContext = null;
-
-export function getAudioContext() {
-    if (!audioContext) {
-        audioContext = new AudioContext();
+export async function loadAudioFile(file, audioContext) {
+    if (!file) {
+        throw new Error("No audio file selected.");
     }
 
-    return audioContext;
-}
+    const arrayBuffer = await file.arrayBuffer();
 
-export async function resumeAudioContext() {
-    const ctx = getAudioContext();
-
-    if (ctx.state === "suspended") {
-        await ctx.resume();
+    try {
+        return await audioContext.decodeAudioData(arrayBuffer);
+    } catch (error) {
+        throw new Error(
+            "Unable to decode audio file. The format may not be supported by this browser."
+        );
     }
-
-    return ctx;
 }

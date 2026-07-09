@@ -1,18 +1,35 @@
-import { state, subscribe } from "./state.js";
+import {
+    state,
+    subscribe,
+    setOriginalFile,
+    setOriginalBuffer,
+    setOriginalInfo
+} from "./state.js";
 
 import {
     getAudioContext,
     resumeAudioContext
 } from "./audio/AudioContextManager.js";
 
+import {
+    loadAudioFile
+} from "./audio/AudioLoader.js";
+
+import {
+    analyzeAudioBuffer,
+    formatDuration,
+    formatDb
+} from "./analysis/AudioInfo.js";
+
 document.addEventListener("DOMContentLoaded", initializeApp);
 
 function initializeApp() {
     bindAudioContextControls();
+    bindAudioInputControls();
 
-    subscribe(renderAudioContextStatus);
+    subscribe(render);
 
-    renderAudioContextStatus(state);
+    render(state);
 }
 
 function bindAudioContextControls() {
@@ -25,12 +42,49 @@ function bindAudioContextControls() {
 
             await resumeAudioContext();
 
-            renderAudioContextStatus(state);
+            render(state);
         } catch (error) {
             console.error(error);
             alert(error.message);
         }
     });
+}
+
+function bindAudioInputControls() {
+    const audioFileInput =
+        document.getElementById("audioFileInput");
+
+    audioFileInput.addEventListener("change", async event => {
+        const file = event.target.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        try {
+            const audioContext =
+                await resumeAudioContext();
+
+            setOriginalFile(file);
+
+            const audioBuffer =
+                await loadAudioFile(file, audioContext);
+
+            const info =
+                analyzeAudioBuffer(audioBuffer);
+
+            setOriginalBuffer(audioBuffer);
+            setOriginalInfo(info);
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    });
+}
+
+function render(currentState) {
+    renderAudioContextStatus(currentState);
+    renderOriginalAudioInfo(currentState);
 }
 
 function renderAudioContextStatus(currentState) {
@@ -51,4 +105,52 @@ function renderAudioContextStatus(currentState) {
 
     sampleRateElement.textContent =
         `${currentState.audioContext.sampleRate} Hz`;
+}
+
+function renderOriginalAudioInfo(currentState) {
+    const fileNameElement =
+        document.getElementById("originalFileName");
+
+    const durationElement =
+        document.getElementById("originalDuration");
+
+    const sampleRateElement =
+        document.getElementById("originalSampleRate");
+
+    const channelsElement =
+        document.getElementById("originalChannels");
+
+    const peakElement =
+        document.getElementById("originalPeak");
+
+    const peakDbElement =
+        document.getElementById("originalPeakDb");
+
+    if (!currentState.originalBuffer) {
+        fileNameElement.textContent = "-";
+        durationElement.textContent = "-";
+        sampleRateElement.textContent = "-";
+        channelsElement.textContent = "-";
+        peakElement.textContent = "-";
+        peakDbElement.textContent = "-";
+        return;
+    }
+
+    fileNameElement.textContent =
+        currentState.originalFile?.name ?? "-";
+
+    durationElement.textContent =
+        formatDuration(currentState.originalInfo.durationMs);
+
+    sampleRateElement.textContent =
+        `${currentState.originalInfo.sampleRate} Hz`;
+
+    channelsElement.textContent =
+        currentState.originalInfo.numberOfChannels;
+
+    peakElement.textContent =
+        currentState.originalInfo.peakLinear.toFixed(4);
+
+    peakDbElement.textContent =
+        formatDb(currentState.originalInfo.peakDb);
 }
