@@ -5,9 +5,6 @@ export const state = {
     originalBuffer: null,
     processedBuffer: null,
 
-    originalPlayer: null,
-    processedPlayer: null,
-
     originalInfo: {
         durationMs: 0,
         sampleRate: 0,
@@ -63,3 +60,66 @@ export const state = {
         }
     }
 };
+
+const listeners = new Set();
+
+export function subscribe(listener) {
+    listeners.add(listener);
+
+    return function unsubscribe() {
+        listeners.delete(listener);
+    };
+}
+
+export function notifyStateChanged() {
+    for (const listener of listeners) {
+        listener(state);
+    }
+}
+
+export function setAudioContext(audioContext) {
+    state.audioContext = audioContext;
+    notifyStateChanged();
+}
+
+export function setOriginalFile(file) {
+    state.originalFile = file;
+    notifyStateChanged();
+}
+
+export function setOriginalBuffer(audioBuffer) {
+    state.originalBuffer = audioBuffer;
+    notifyStateChanged();
+}
+
+export function setProcessedBuffer(audioBuffer) {
+    state.processedBuffer = audioBuffer;
+    notifyStateChanged();
+}
+
+export function setOriginalInfo(info) {
+    state.originalInfo = {
+        ...state.originalInfo,
+        ...info
+    };
+
+    notifyStateChanged();
+}
+
+export function setProcessedInfo(info) {
+    state.processedInfo = {
+        ...state.processedInfo,
+        ...info
+    };
+
+    notifyStateChanged();
+}
+
+export function updateProcessingSettings(section, values) {
+    state.processingSettings[section] = {
+        ...state.processingSettings[section],
+        ...values
+    };
+
+    notifyStateChanged();
+}

@@ -1,0 +1,33 @@
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: #f4f4f5;
+    color: #18181b;
+}
+
+.app-header {
+    padding: 1rem 2rem;
+    background: #18181b;
+    color: white;
+}
+
+.app-layout {
+    padding: 2rem;
+}
+
+.panel {
+    max-width: 480px;
+    padding: 1rem;
+    border: 1px solid #d4d4d8;
+    border-radius: 8px;
+    background: white;
+}
+
+button {
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+}
+
+span {
+    font-weight: 600;
+}
