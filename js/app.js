@@ -21,11 +21,17 @@ import {
     formatDb
 } from "./analysis/AudioInfo.js";
 
+import {
+    drawWaveform,
+    clearWaveform
+} from "./ui/WaveformView.js";
+
 document.addEventListener("DOMContentLoaded", initializeApp);
 
 function initializeApp() {
     bindAudioContextControls();
     bindAudioInputControls();
+    bindWindowResize();
 
     subscribe(render);
 
@@ -82,9 +88,16 @@ function bindAudioInputControls() {
     });
 }
 
+function bindWindowResize() {
+    window.addEventListener("resize", () => {
+        renderOriginalWaveform(state);
+    });
+}
+
 function render(currentState) {
     renderAudioContextStatus(currentState);
     renderOriginalAudioInfo(currentState);
+    renderOriginalWaveform(currentState);
 }
 
 function renderAudioContextStatus(currentState) {
@@ -153,4 +166,19 @@ function renderOriginalAudioInfo(currentState) {
 
     peakDbElement.textContent =
         formatDb(currentState.originalInfo.peakDb);
+}
+
+function renderOriginalWaveform(currentState) {
+    const canvas =
+        document.getElementById("originalWaveformCanvas");
+
+    if (!currentState.originalBuffer) {
+        clearWaveform(canvas);
+        return;
+    }
+
+    drawWaveform(
+        canvas,
+        currentState.originalBuffer
+    );
 }
