@@ -3,7 +3,10 @@ import {
     subscribe,
     setOriginalFile,
     setOriginalBuffer,
-    setOriginalInfo
+    setOriginalInfo,
+    setProcessedBuffer,
+    setProcessedInfo,
+    updateProcessingSettings
 } from "./state.js";
 
 import {
@@ -34,6 +37,10 @@ import {
     MicrophoneRecorder
 } from "./audio/MicrophoneRecorder.js";
 
+import {
+    renderProcessedAudio
+} from "./audio/OfflineRenderer.js";
+
 let originalPlayer = null;
 let originalPlaybackAnimationId = null;
 let isUserSeekingOriginal = false;
@@ -41,12 +48,29 @@ let isUserSeekingOriginal = false;
 let microphoneRecorder = null;
 let recordingAnimationId = null;
 
+let processedPlayer = null;
+let processedPlaybackAnimationId = null;
+let isUserSeekingProcessed = false;
+
+const EMPTY_AUDIO_INFO = {
+    durationMs: 0,
+    sampleRate: 0,
+    numberOfChannels: 0,
+    peakLinear: 0,
+    peakDb: -Infinity
+};
+
 document.addEventListener("DOMContentLoaded", initializeApp);
 
+
+//**
+// Binding dei controlli relativi ai moduli della pagina
+// **/
 function initializeApp() {
-    bindAudioContextControls();
     bindAudioInputControls();
     bindOriginalPlaybackControls();
+    bindProcessedPlaybackControls();
+    bindProcessingControls();
     bindMicrophoneRecordingControls();
     bindWindowResize();
 
@@ -55,23 +79,7 @@ function initializeApp() {
     render(state);
 }
 
-function bindAudioContextControls() {
-    const initButton =
-        document.getElementById("initAudioContextBtn");
 
-    initButton.addEventListener("click", async () => {
-        try {
-            getAudioContext();
-
-            await resumeAudioContext();
-
-            render(state);
-        } catch (error) {
-            console.error(error);
-            alert(error.message);
-        }
-    });
-}
 
 function bindAudioInputControls() {
     const audioFileInput =
@@ -96,6 +104,9 @@ function bindAudioInputControls() {
             const info =
                 analyzeAudioBuffer(audioBuffer);
 
+            resetProcessedAudio();
+
+            setOriginalFile(file);
             setOriginalBuffer(audioBuffer);
             setOriginalInfo(info);
 
@@ -110,6 +121,7 @@ function bindAudioInputControls() {
 function bindWindowResize() {
     window.addEventListener("resize", () => {
         renderOriginalWaveform(state);
+        renderProcessedWaveform(state);
     });
 }
 
@@ -201,6 +213,158 @@ function bindOriginalPlaybackControls() {
     });
 }
 
+function bindProcessedPlaybackControls() {
+    const playButton =
+        document.getElementById("processedPlayBtn");
+
+    const pauseButton =
+        document.getElementById("processedPauseBtn");
+
+    const stopButton =
+        document.getElementById("processedStopBtn");
+
+    const seekSlider =
+        document.getElementById("processedSeekSlider");
+
+    playButton.addEventListener("click", async () => {
+        try {
+            await resumeAudioContext();
+
+            if (!processedPlayer && state.processedBuffer) {
+                processedPlayer =
+                    new AudioPlayer(state.audioContext);
+
+                processedPlayer.setBuffer(state.processedBuffer);
+            }
+
+            if (!processedPlayer) {
+                throw new Error(
+                    "No processed audio available. Apply processing first."
+                );
+            }
+
+            processedPlayer.play();
+            startProcessedPlaybackAnimation();
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+        }
+    });
+
+    pauseButton.addEventListener("click", () => {
+        if (!processedPlayer) {
+            return;
+        }
+
+        processedPlayer.pause();
+        stopProcessedPlaybackAnimation();
+        updateProcessedPlaybackUI();
+    });
+
+    stopButton.addEventListener("click", () => {
+        if (!processedPlayer) {
+            return;
+        }
+
+        processedPlayer.stop();
+        stopProcessedPlaybackAnimation();
+        updateProcessedPlaybackUI();
+    });
+
+    seekSlider.addEventListener("input", () => {
+        isUserSeekingProcessed = true;
+
+        updateProcessedCurrentTimeFromSlider();
+    });
+
+    seekSlider.addEventListener("change", () => {
+        if (!processedPlayer) {
+            return;
+        }
+
+        const durationMs =
+            processedPlayer.getDurationMs();
+
+        const ratio =
+            Number(seekSlider.value) / 1000;
+
+        const targetTimeMs =
+            durationMs * ratio;
+
+        processedPlayer.seek(targetTimeMs);
+
+        isUserSeekingProcessed = false;
+
+        updateProcessedPlaybackUI();
+
+        if (processedPlayer.isPlaying) {
+            startProcessedPlaybackAnimation();
+        }
+    });
+}
+
+function bindProcessingControls() {
+    const gainSlider =
+        document.getElementById("gainSlider");
+
+    const applyButton =
+        document.getElementById("applyProcessingBtn");
+
+
+    gainSlider.addEventListener("input", () => {
+        const gainValue =
+            Number(gainSlider.value);
+
+        updateProcessingSettings("gain", {
+            enabled: true,
+            value: gainValue
+        });
+
+        renderGainControls();
+    });
+
+    applyButton.addEventListener("click", async () => {
+        try {
+            await resumeAudioContext();
+
+            if (!state.originalBuffer) {
+                throw new Error("No original audio loaded.");
+            }
+
+            renderProcessingStatus("processing");
+
+            if (processedPlayer) {
+                processedPlayer.stop();
+                stopProcessedPlaybackAnimation();
+            }
+
+            const processedBuffer =
+                await renderProcessedAudio(
+                    state.originalBuffer,
+                    state.processingSettings
+                );
+
+            const processedInfo =
+                analyzeAudioBuffer(processedBuffer);
+
+            setProcessedBuffer(processedBuffer);
+            setProcessedInfo(processedInfo);
+
+            setupProcessedPlayer(
+                state.audioContext,
+                processedBuffer
+            );
+
+            renderProcessingStatus("processed");
+        } catch (error) {
+            console.error(error);
+            alert(error.message);
+
+            renderProcessingStatus("error");
+        }
+    });
+}
+
 function bindMicrophoneRecordingControls() {
     const startButton =
         document.getElementById("startRecordingBtn");
@@ -272,31 +436,15 @@ function bindMicrophoneRecordingControls() {
 }
 
 function render(currentState) {
-    renderAudioContextStatus(currentState);
     renderOriginalAudioInfo(currentState);
+    renderProcessedAudioInfo(currentState);
     renderOriginalWaveform(currentState);
+    renderProcessedWaveform(currentState);
+    renderGainControls();
     updateOriginalPlaybackUI();
+    updateProcessedPlaybackUI();
 }
 
-function renderAudioContextStatus(currentState) {
-    const statusElement =
-        document.getElementById("audioContextStatus");
-
-    const sampleRateElement =
-        document.getElementById("audioContextSampleRate");
-
-    if (!currentState.audioContext) {
-        statusElement.textContent = "not initialized";
-        sampleRateElement.textContent = "-";
-        return;
-    }
-
-    statusElement.textContent =
-        currentState.audioContext.state;
-
-    sampleRateElement.textContent =
-        `${currentState.audioContext.sampleRate} Hz`;
-}
 
 function renderOriginalAudioInfo(currentState) {
     const fileNameElement =
@@ -346,6 +494,47 @@ function renderOriginalAudioInfo(currentState) {
         formatDb(currentState.originalInfo.peakDb);
 }
 
+function renderProcessedAudioInfo(currentState) {
+    const durationElement =
+        document.getElementById("processedDuration");
+
+    const sampleRateElement =
+        document.getElementById("processedSampleRate");
+
+    const channelsElement =
+        document.getElementById("processedChannels");
+
+    const peakElement =
+        document.getElementById("processedPeak");
+
+    const peakDbElement =
+        document.getElementById("processedPeakDb");
+
+    if (!currentState.processedBuffer) {
+        durationElement.textContent = "-";
+        sampleRateElement.textContent = "-";
+        channelsElement.textContent = "-";
+        peakElement.textContent = "-";
+        peakDbElement.textContent = "-";
+        return;
+    }
+
+    durationElement.textContent =
+        formatDuration(currentState.processedInfo.durationMs);
+
+    sampleRateElement.textContent =
+        `${currentState.processedInfo.sampleRate} Hz`;
+
+    channelsElement.textContent =
+        currentState.processedInfo.numberOfChannels;
+
+    peakElement.textContent =
+        currentState.processedInfo.peakLinear.toFixed(4);
+
+    peakDbElement.textContent =
+        formatDb(currentState.processedInfo.peakDb);
+}
+
 function renderOriginalWaveform(currentState) {
     const canvas =
         document.getElementById("originalWaveformCanvas");
@@ -361,58 +550,44 @@ function renderOriginalWaveform(currentState) {
     );
 }
 
-function renderRecordingStatus(status) {
-    const statusElement =
-        document.getElementById("recordingStatus");
+function renderProcessedWaveform(currentState) {
+    const canvas =
+        document.getElementById("processedWaveformCanvas");
 
-    const mimeTypeElement =
-        document.getElementById("recordingMimeType");
+    if (!currentState.processedBuffer) {
+        clearWaveform(canvas);
+        return;
+    }
+
+    drawWaveform(
+        canvas,
+        currentState.processedBuffer
+    );
+}
+
+function renderGainControls() {
+    const gainSlider =
+        document.getElementById("gainSlider");
+
+    const gainValueElement =
+        document.getElementById("gainValue");
+
+    const gainValue =
+        state.processingSettings.gain.value;
+
+    if (Number(gainSlider.value) !== gainValue) {
+        gainSlider.value = String(gainValue);
+    }
+
+    gainValueElement.textContent =
+        gainValue.toFixed(2);
+}
+
+function renderProcessingStatus(status) {
+    const statusElement =
+        document.getElementById("processingStatus");
 
     statusElement.textContent = status;
-
-    if (microphoneRecorder) {
-        mimeTypeElement.textContent =
-            microphoneRecorder.getMimeType();
-    } else {
-        mimeTypeElement.textContent = "-";
-    }
-}
-
-function setupOriginalPlayer(audioContext, audioBuffer) {
-    if (!originalPlayer) {
-        originalPlayer =
-            new AudioPlayer(audioContext);
-    }
-
-    originalPlayer.setBuffer(audioBuffer);
-
-    updateOriginalPlaybackUI();
-}
-
-function startOriginalPlaybackAnimation() {
-    stopOriginalPlaybackAnimation();
-
-    function tick() {
-        updateOriginalPlaybackUI();
-
-        if (
-            originalPlayer &&
-            originalPlayer.isPlaying
-        ) {
-            originalPlaybackAnimationId =
-                requestAnimationFrame(tick);
-        }
-    }
-
-    originalPlaybackAnimationId =
-        requestAnimationFrame(tick);
-}
-
-function stopOriginalPlaybackAnimation() {
-    if (originalPlaybackAnimationId !== null) {
-        cancelAnimationFrame(originalPlaybackAnimationId);
-        originalPlaybackAnimationId = null;
-    }
 }
 
 function updateOriginalPlaybackUI() {
@@ -452,6 +627,145 @@ function updateOriginalPlaybackUI() {
     }
 }
 
+function updateProcessedPlaybackUI() {
+    const seekSlider =
+        document.getElementById("processedSeekSlider");
+
+    const currentTimeElement =
+        document.getElementById("processedCurrentTime");
+
+    const totalTimeElement =
+        document.getElementById("processedTotalTime");
+
+    if (!state.processedBuffer || !processedPlayer) {
+        seekSlider.value = 0;
+        currentTimeElement.textContent = "0:00.000";
+        totalTimeElement.textContent = "0:00.000";
+        return;
+    }
+
+    const currentTimeMs =
+        processedPlayer.getCurrentTimeMs();
+
+    const durationMs =
+        processedPlayer.getDurationMs();
+
+    currentTimeElement.textContent =
+        formatDuration(currentTimeMs);
+
+    totalTimeElement.textContent =
+        formatDuration(durationMs);
+
+    if (!isUserSeekingProcessed && durationMs > 0) {
+        seekSlider.value =
+            Math.round(
+                (currentTimeMs / durationMs) * 1000
+            );
+    }
+}
+
+function renderRecordingStatus(status) {
+    const statusElement =
+        document.getElementById("recordingStatus");
+
+    const mimeTypeElement =
+        document.getElementById("recordingMimeType");
+
+    statusElement.textContent = status;
+
+    if (microphoneRecorder) {
+        mimeTypeElement.textContent =
+            microphoneRecorder.getMimeType();
+    } else {
+        mimeTypeElement.textContent = "-";
+    }
+}
+
+function setupOriginalPlayer(audioContext, audioBuffer) {
+    if (!originalPlayer) {
+        originalPlayer =
+            new AudioPlayer(audioContext);
+    }
+
+    originalPlayer.setBuffer(audioBuffer);
+
+    updateOriginalPlaybackUI();
+}
+
+function setupProcessedPlayer(audioContext, audioBuffer) {
+    if (!processedPlayer) {
+        processedPlayer =
+            new AudioPlayer(audioContext);
+    }
+
+    processedPlayer.setBuffer(audioBuffer);
+
+    updateProcessedPlaybackUI();
+}
+
+function resetProcessedAudio() {
+    if (processedPlayer) {
+        processedPlayer.stop();
+        stopProcessedPlaybackAnimation();
+    }
+
+    setProcessedBuffer(null);
+    setProcessedInfo(EMPTY_AUDIO_INFO);
+    renderProcessingStatus("not processed");
+}
+
+function startOriginalPlaybackAnimation() {
+    stopOriginalPlaybackAnimation();
+
+    function tick() {
+        updateOriginalPlaybackUI();
+
+        if (
+            originalPlayer &&
+            originalPlayer.isPlaying
+        ) {
+            originalPlaybackAnimationId =
+                requestAnimationFrame(tick);
+        }
+    }
+
+    originalPlaybackAnimationId =
+        requestAnimationFrame(tick);
+}
+
+function stopOriginalPlaybackAnimation() {
+    if (originalPlaybackAnimationId !== null) {
+        cancelAnimationFrame(originalPlaybackAnimationId);
+        originalPlaybackAnimationId = null;
+    }
+}
+
+function startProcessedPlaybackAnimation() {
+    stopProcessedPlaybackAnimation();
+
+    function tick() {
+        updateProcessedPlaybackUI();
+
+        if (
+            processedPlayer &&
+            processedPlayer.isPlaying
+        ) {
+            processedPlaybackAnimationId =
+                requestAnimationFrame(tick);
+        }
+    }
+
+    processedPlaybackAnimationId =
+        requestAnimationFrame(tick);
+}
+
+function stopProcessedPlaybackAnimation() {
+    if (processedPlaybackAnimationId !== null) {
+        cancelAnimationFrame(processedPlaybackAnimationId);
+        processedPlaybackAnimationId = null;
+    }
+}
+
 function updateOriginalCurrentTimeFromSlider() {
     const seekSlider =
         document.getElementById("originalSeekSlider");
@@ -468,6 +782,36 @@ function updateOriginalCurrentTimeFromSlider() {
 
     const durationMs =
         originalPlayer.getDurationMs();
+
+    const ratio =
+        Number(seekSlider.value) / 1000;
+
+    const previewTimeMs =
+        durationMs * ratio;
+
+    currentTimeElement.textContent =
+        formatDuration(previewTimeMs);
+
+    totalTimeElement.textContent =
+        formatDuration(durationMs);
+}
+
+function updateProcessedCurrentTimeFromSlider() {
+    const seekSlider =
+        document.getElementById("processedSeekSlider");
+
+    const currentTimeElement =
+        document.getElementById("processedCurrentTime");
+
+    const totalTimeElement =
+        document.getElementById("processedTotalTime");
+
+    if (!processedPlayer) {
+        return;
+    }
+
+    const durationMs =
+        processedPlayer.getDurationMs();
 
     const ratio =
         Number(seekSlider.value) / 1000;
@@ -511,6 +855,8 @@ async function useRecordedBlobAsOriginalAudio(audioBlob) {
         originalPlayer.stop();
         stopOriginalPlaybackAnimation();
     }
+
+    resetProcessedAudio();
 
     setOriginalFile(recordedFile);
     setOriginalBuffer(audioBuffer);
