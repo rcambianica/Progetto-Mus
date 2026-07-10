@@ -1,16 +1,15 @@
 import {
-    state,
-    subscribe,
-    setOriginalFile,
     setOriginalBuffer,
+    setOriginalFile,
     setOriginalInfo,
     setProcessedBuffer,
     setProcessedInfo,
+    state,
+    subscribe,
     updateProcessingSettings
 } from "./state.js";
 
 import {
-    getAudioContext,
     resumeAudioContext
 } from "./audio/AudioContextManager.js";
 
@@ -20,14 +19,18 @@ import {
 
 import {
     analyzeAudioBuffer,
-    formatDuration,
-    formatDb
+    formatDb,
+    formatDuration
 } from "./analysis/AudioInfo.js";
 
 import {
-    drawWaveform,
-    clearWaveform
-} from "./ui/WaveformView.js";
+    clearProcessedWaveSurfer,
+    initializeWaveSurfers,
+    renderOriginalWaveformWithWaveSurfer,
+    renderProcessedWaveformWithWaveSurfer,
+    syncOriginalWaveSurferToTime,
+    syncProcessedWaveSurferToTime
+} from "./ui/WaveSurferView.js";
 
 import {
     AudioPlayer
@@ -41,17 +44,6 @@ import {
     renderProcessedAudio
 } from "./audio/OfflineRenderer.js";
 
-let originalPlayer = null;
-let originalPlaybackAnimationId = null;
-let isUserSeekingOriginal = false;
-
-let microphoneRecorder = null;
-let recordingAnimationId = null;
-
-let processedPlayer = null;
-let processedPlaybackAnimationId = null;
-let isUserSeekingProcessed = false;
-
 const EMPTY_AUDIO_INFO = {
     durationMs: 0,
     sampleRate: 0,
@@ -60,26 +52,78 @@ const EMPTY_AUDIO_INFO = {
     peakDb: -Infinity
 };
 
+const tracks = {
+    original: {
+        name: "original",
+        player: null,
+        playbackAnimationId: null,
+        isUserSeeking: false,
+
+        getBuffer: () => state.originalBuffer,
+
+        playButtonId: "originalPlayBtn",
+        pauseButtonId: "originalPauseBtn",
+        stopButtonId: "originalStopBtn",
+
+        seekSliderId: "originalSeekSlider",
+        currentTimeId: "originalCurrentTime",
+        totalTimeId: "originalTotalTime",
+
+        syncWaveformToTime: syncOriginalWaveSurferToTime,
+
+        missingAudioMessage: "No original audio loaded."
+    },
+
+    processed: {
+        name: "processed",
+        player: null,
+        playbackAnimationId: null,
+        isUserSeeking: false,
+
+        getBuffer: () => state.processedBuffer,
+
+        playButtonId: "processedPlayBtn",
+        pauseButtonId: "processedPauseBtn",
+        stopButtonId: "processedStopBtn",
+
+        seekSliderId: "processedSeekSlider",
+        currentTimeId: "processedCurrentTime",
+        totalTimeId: "processedTotalTime",
+
+        syncWaveformToTime: syncProcessedWaveSurferToTime,
+
+        missingAudioMessage:
+            "No processed audio available. Apply processing first."
+    }
+};
+
+let microphoneRecorder = null;
+let recordingAnimationId = null;
+
 document.addEventListener("DOMContentLoaded", initializeApp);
 
-
-//**
-// Binding dei controlli relativi ai moduli della pagina
-// **/
 function initializeApp() {
+    initializeWaveSurfers(
+        timeMs => handleWaveformInteraction(
+            tracks.original,
+            timeMs
+        ),
+        timeMs => handleWaveformInteraction(
+            tracks.processed,
+            timeMs
+        )
+    );
+
     bindAudioInputControls();
-    bindOriginalPlaybackControls();
-    bindProcessedPlaybackControls();
+    bindPlaybackControls(tracks.original);
+    bindPlaybackControls(tracks.processed);
     bindProcessingControls();
     bindMicrophoneRecordingControls();
-    bindWindowResize();
 
     subscribe(render);
 
     render(state);
 }
-
-
 
 function bindAudioInputControls() {
     const audioFileInput =
@@ -96,21 +140,28 @@ function bindAudioInputControls() {
             const audioContext =
                 await resumeAudioContext();
 
-            setOriginalFile(file);
-
             const audioBuffer =
                 await loadAudioFile(file, audioContext);
 
             const info =
                 analyzeAudioBuffer(audioBuffer);
 
+            stopAndResetTrack(tracks.original);
             resetProcessedAudio();
 
             setOriginalFile(file);
             setOriginalBuffer(audioBuffer);
             setOriginalInfo(info);
 
-            setupOriginalPlayer(audioContext, audioBuffer);
+            setupTrackPlayer(
+                tracks.original,
+                audioContext,
+                audioBuffer
+            );
+
+            await renderOriginalWaveformWithWaveSurfer(file);
+
+            tracks.original.syncWaveformToTime(0);
         } catch (error) {
             console.error(error);
             alert(error.message);
@@ -118,43 +169,44 @@ function bindAudioInputControls() {
     });
 }
 
-function bindWindowResize() {
-    window.addEventListener("resize", () => {
-        renderOriginalWaveform(state);
-        renderProcessedWaveform(state);
-    });
-}
-
-function bindOriginalPlaybackControls() {
+function bindPlaybackControls(track) {
     const playButton =
-        document.getElementById("originalPlayBtn");
+        document.getElementById(track.playButtonId);
 
     const pauseButton =
-        document.getElementById("originalPauseBtn");
+        document.getElementById(track.pauseButtonId);
 
     const stopButton =
-        document.getElementById("originalStopBtn");
+        document.getElementById(track.stopButtonId);
 
     const seekSlider =
-        document.getElementById("originalSeekSlider");
+        document.getElementById(track.seekSliderId);
 
     playButton.addEventListener("click", async () => {
         try {
             await resumeAudioContext();
 
-            if (!originalPlayer && state.originalBuffer) {
-                originalPlayer =
+            const buffer =
+                track.getBuffer();
+
+            if (!track.player && buffer) {
+                track.player =
                     new AudioPlayer(state.audioContext);
 
-                originalPlayer.setBuffer(state.originalBuffer);
+                track.player.setBuffer(buffer);
             }
 
-            if (!originalPlayer) {
-                throw new Error("No original audio loaded.");
+            if (!track.player) {
+                throw new Error(track.missingAudioMessage);
             }
 
-            originalPlayer.play();
-            startOriginalPlaybackAnimation();
+            track.player.play();
+
+            track.syncWaveformToTime(
+                track.player.getCurrentTimeMs()
+            );
+
+            startPlaybackAnimation(track);
         } catch (error) {
             console.error(error);
             alert(error.message);
@@ -162,38 +214,46 @@ function bindOriginalPlaybackControls() {
     });
 
     pauseButton.addEventListener("click", () => {
-        if (!originalPlayer) {
+        if (!track.player) {
             return;
         }
 
-        originalPlayer.pause();
-        stopOriginalPlaybackAnimation();
-        updateOriginalPlaybackUI();
+        track.player.pause();
+
+        track.syncWaveformToTime(
+            track.player.getCurrentTimeMs()
+        );
+
+        stopPlaybackAnimation(track);
+        updatePlaybackUI(track);
     });
 
     stopButton.addEventListener("click", () => {
-        if (!originalPlayer) {
+        if (!track.player) {
             return;
         }
 
-        originalPlayer.stop();
-        stopOriginalPlaybackAnimation();
-        updateOriginalPlaybackUI();
+        track.player.stop();
+
+        track.syncWaveformToTime(0);
+
+        stopPlaybackAnimation(track);
+        updatePlaybackUI(track);
     });
 
     seekSlider.addEventListener("input", () => {
-        isUserSeekingOriginal = true;
+        track.isUserSeeking = true;
 
-        updateOriginalCurrentTimeFromSlider();
+        updateCurrentTimeFromSlider(track);
     });
 
     seekSlider.addEventListener("change", () => {
-        if (!originalPlayer) {
+        if (!track.player) {
             return;
         }
 
         const durationMs =
-            originalPlayer.getDurationMs();
+            track.player.getDurationMs();
 
         const ratio =
             Number(seekSlider.value) / 1000;
@@ -201,104 +261,16 @@ function bindOriginalPlaybackControls() {
         const targetTimeMs =
             durationMs * ratio;
 
-        originalPlayer.seek(targetTimeMs);
+        track.player.seek(targetTimeMs);
 
-        isUserSeekingOriginal = false;
+        track.syncWaveformToTime(targetTimeMs);
 
-        updateOriginalPlaybackUI();
+        track.isUserSeeking = false;
 
-        if (originalPlayer.isPlaying) {
-            startOriginalPlaybackAnimation();
-        }
-    });
-}
+        updatePlaybackUI(track);
 
-function bindProcessedPlaybackControls() {
-    const playButton =
-        document.getElementById("processedPlayBtn");
-
-    const pauseButton =
-        document.getElementById("processedPauseBtn");
-
-    const stopButton =
-        document.getElementById("processedStopBtn");
-
-    const seekSlider =
-        document.getElementById("processedSeekSlider");
-
-    playButton.addEventListener("click", async () => {
-        try {
-            await resumeAudioContext();
-
-            if (!processedPlayer && state.processedBuffer) {
-                processedPlayer =
-                    new AudioPlayer(state.audioContext);
-
-                processedPlayer.setBuffer(state.processedBuffer);
-            }
-
-            if (!processedPlayer) {
-                throw new Error(
-                    "No processed audio available. Apply processing first."
-                );
-            }
-
-            processedPlayer.play();
-            startProcessedPlaybackAnimation();
-        } catch (error) {
-            console.error(error);
-            alert(error.message);
-        }
-    });
-
-    pauseButton.addEventListener("click", () => {
-        if (!processedPlayer) {
-            return;
-        }
-
-        processedPlayer.pause();
-        stopProcessedPlaybackAnimation();
-        updateProcessedPlaybackUI();
-    });
-
-    stopButton.addEventListener("click", () => {
-        if (!processedPlayer) {
-            return;
-        }
-
-        processedPlayer.stop();
-        stopProcessedPlaybackAnimation();
-        updateProcessedPlaybackUI();
-    });
-
-    seekSlider.addEventListener("input", () => {
-        isUserSeekingProcessed = true;
-
-        updateProcessedCurrentTimeFromSlider();
-    });
-
-    seekSlider.addEventListener("change", () => {
-        if (!processedPlayer) {
-            return;
-        }
-
-        const durationMs =
-            processedPlayer.getDurationMs();
-
-        const ratio =
-            Number(seekSlider.value) / 1000;
-
-        const targetTimeMs =
-            durationMs * ratio;
-
-        processedPlayer.seek(targetTimeMs);
-
-        isUserSeekingProcessed = false;
-
-        updateProcessedPlaybackUI();
-
-        if (processedPlayer.isPlaying) {
-            startProcessedPlaybackAnimation();
+        if (track.player.isPlaying) {
+            startPlaybackAnimation(track);
         }
     });
 }
@@ -309,7 +281,6 @@ function bindProcessingControls() {
 
     const applyButton =
         document.getElementById("applyProcessingBtn");
-
 
     gainSlider.addEventListener("input", () => {
         const gainValue =
@@ -333,10 +304,7 @@ function bindProcessingControls() {
 
             renderProcessingStatus("processing");
 
-            if (processedPlayer) {
-                processedPlayer.stop();
-                stopProcessedPlaybackAnimation();
-            }
+            stopAndResetTrack(tracks.processed);
 
             const processedBuffer =
                 await renderProcessedAudio(
@@ -350,10 +318,17 @@ function bindProcessingControls() {
             setProcessedBuffer(processedBuffer);
             setProcessedInfo(processedInfo);
 
-            setupProcessedPlayer(
+            setupTrackPlayer(
+                tracks.processed,
                 state.audioContext,
                 processedBuffer
             );
+
+            await renderProcessedWaveformWithWaveSurfer(
+                processedBuffer
+            );
+
+            tracks.processed.syncWaveformToTime(0);
 
             renderProcessingStatus("processed");
         } catch (error) {
@@ -435,16 +410,196 @@ function bindMicrophoneRecordingControls() {
     });
 }
 
+function handleWaveformInteraction(track, timeMs) {
+    if (!track.player || !track.getBuffer()) {
+        return;
+    }
+
+    track.player.seek(timeMs);
+
+    const durationMs =
+        track.player.getDurationMs();
+
+    updateSeekSliderValue(
+        track.seekSliderId,
+        timeMs,
+        durationMs
+    );
+
+    updatePlaybackUI(track);
+
+    if (track.player.isPlaying) {
+        startPlaybackAnimation(track);
+    }
+}
+
+function updateSeekSliderValue(
+    sliderId,
+    timeMs,
+    durationMs
+) {
+    const seekSlider =
+        document.getElementById(sliderId);
+
+    if (!durationMs || durationMs <= 0) {
+        seekSlider.value = 0;
+        return;
+    }
+
+    seekSlider.value =
+        Math.round(
+            (timeMs / durationMs) * 1000
+        );
+}
+
+function setupTrackPlayer(track, audioContext, audioBuffer) {
+    if (!track.player) {
+        track.player =
+            new AudioPlayer(audioContext);
+    }
+
+    track.player.setBuffer(audioBuffer);
+
+    updatePlaybackUI(track);
+}
+
+function stopAndResetTrack(track) {
+    if (track.player) {
+        track.player.stop();
+    }
+
+    stopPlaybackAnimation(track);
+
+    track.syncWaveformToTime(0);
+
+    const seekSlider =
+        document.getElementById(track.seekSliderId);
+
+    if (seekSlider) {
+        seekSlider.value = 0;
+    }
+
+    updatePlaybackUI(track);
+}
+
+function resetProcessedAudio() {
+    stopAndResetTrack(tracks.processed);
+
+    setProcessedBuffer(null);
+    setProcessedInfo(EMPTY_AUDIO_INFO);
+
+    clearProcessedWaveSurfer();
+
+    renderProcessingStatus("not processed");
+}
+
+function startPlaybackAnimation(track) {
+    stopPlaybackAnimation(track);
+
+    function tick() {
+        updatePlaybackUI(track);
+
+        if (track.player) {
+            track.syncWaveformToTime(
+                track.player.getCurrentTimeMs()
+            );
+        }
+
+        if (
+            track.player &&
+            track.player.isPlaying
+        ) {
+            track.playbackAnimationId =
+                requestAnimationFrame(tick);
+        }
+    }
+
+    track.playbackAnimationId =
+        requestAnimationFrame(tick);
+}
+
+function stopPlaybackAnimation(track) {
+    if (track.playbackAnimationId !== null) {
+        cancelAnimationFrame(track.playbackAnimationId);
+        track.playbackAnimationId = null;
+    }
+}
+
+function updatePlaybackUI(track) {
+    const seekSlider =
+        document.getElementById(track.seekSliderId);
+
+    const currentTimeElement =
+        document.getElementById(track.currentTimeId);
+
+    const totalTimeElement =
+        document.getElementById(track.totalTimeId);
+
+    if (!track.getBuffer() || !track.player) {
+        seekSlider.value = 0;
+        currentTimeElement.textContent = "0:00.000";
+        totalTimeElement.textContent = "0:00.000";
+        return;
+    }
+
+    const currentTimeMs =
+        track.player.getCurrentTimeMs();
+
+    const durationMs =
+        track.player.getDurationMs();
+
+    currentTimeElement.textContent =
+        formatDuration(currentTimeMs);
+
+    totalTimeElement.textContent =
+        formatDuration(durationMs);
+
+    if (!track.isUserSeeking && durationMs > 0) {
+        seekSlider.value =
+            Math.round(
+                (currentTimeMs / durationMs) * 1000
+            );
+    }
+}
+
+function updateCurrentTimeFromSlider(track) {
+    const seekSlider =
+        document.getElementById(track.seekSliderId);
+
+    const currentTimeElement =
+        document.getElementById(track.currentTimeId);
+
+    const totalTimeElement =
+        document.getElementById(track.totalTimeId);
+
+    if (!track.player) {
+        return;
+    }
+
+    const durationMs =
+        track.player.getDurationMs();
+
+    const ratio =
+        Number(seekSlider.value) / 1000;
+
+    const previewTimeMs =
+        durationMs * ratio;
+
+    currentTimeElement.textContent =
+        formatDuration(previewTimeMs);
+
+    totalTimeElement.textContent =
+        formatDuration(durationMs);
+}
+
 function render(currentState) {
     renderOriginalAudioInfo(currentState);
     renderProcessedAudioInfo(currentState);
-    renderOriginalWaveform(currentState);
-    renderProcessedWaveform(currentState);
     renderGainControls();
-    updateOriginalPlaybackUI();
-    updateProcessedPlaybackUI();
-}
 
+    updatePlaybackUI(tracks.original);
+    updatePlaybackUI(tracks.processed);
+}
 
 function renderOriginalAudioInfo(currentState) {
     const fileNameElement =
@@ -535,36 +690,6 @@ function renderProcessedAudioInfo(currentState) {
         formatDb(currentState.processedInfo.peakDb);
 }
 
-function renderOriginalWaveform(currentState) {
-    const canvas =
-        document.getElementById("originalWaveformCanvas");
-
-    if (!currentState.originalBuffer) {
-        clearWaveform(canvas);
-        return;
-    }
-
-    drawWaveform(
-        canvas,
-        currentState.originalBuffer
-    );
-}
-
-function renderProcessedWaveform(currentState) {
-    const canvas =
-        document.getElementById("processedWaveformCanvas");
-
-    if (!currentState.processedBuffer) {
-        clearWaveform(canvas);
-        return;
-    }
-
-    drawWaveform(
-        canvas,
-        currentState.processedBuffer
-    );
-}
-
 function renderGainControls() {
     const gainSlider =
         document.getElementById("gainSlider");
@@ -590,80 +715,6 @@ function renderProcessingStatus(status) {
     statusElement.textContent = status;
 }
 
-function updateOriginalPlaybackUI() {
-    const seekSlider =
-        document.getElementById("originalSeekSlider");
-
-    const currentTimeElement =
-        document.getElementById("originalCurrentTime");
-
-    const totalTimeElement =
-        document.getElementById("originalTotalTime");
-
-    if (!state.originalBuffer || !originalPlayer) {
-        seekSlider.value = 0;
-        currentTimeElement.textContent = "0:00.000";
-        totalTimeElement.textContent = "0:00.000";
-        return;
-    }
-
-    const currentTimeMs =
-        originalPlayer.getCurrentTimeMs();
-
-    const durationMs =
-        originalPlayer.getDurationMs();
-
-    currentTimeElement.textContent =
-        formatDuration(currentTimeMs);
-
-    totalTimeElement.textContent =
-        formatDuration(durationMs);
-
-    if (!isUserSeekingOriginal && durationMs > 0) {
-        seekSlider.value =
-            Math.round(
-                (currentTimeMs / durationMs) * 1000
-            );
-    }
-}
-
-function updateProcessedPlaybackUI() {
-    const seekSlider =
-        document.getElementById("processedSeekSlider");
-
-    const currentTimeElement =
-        document.getElementById("processedCurrentTime");
-
-    const totalTimeElement =
-        document.getElementById("processedTotalTime");
-
-    if (!state.processedBuffer || !processedPlayer) {
-        seekSlider.value = 0;
-        currentTimeElement.textContent = "0:00.000";
-        totalTimeElement.textContent = "0:00.000";
-        return;
-    }
-
-    const currentTimeMs =
-        processedPlayer.getCurrentTimeMs();
-
-    const durationMs =
-        processedPlayer.getDurationMs();
-
-    currentTimeElement.textContent =
-        formatDuration(currentTimeMs);
-
-    totalTimeElement.textContent =
-        formatDuration(durationMs);
-
-    if (!isUserSeekingProcessed && durationMs > 0) {
-        seekSlider.value =
-            Math.round(
-                (currentTimeMs / durationMs) * 1000
-            );
-    }
-}
-
 function renderRecordingStatus(status) {
     const statusElement =
         document.getElementById("recordingStatus");
@@ -679,151 +730,6 @@ function renderRecordingStatus(status) {
     } else {
         mimeTypeElement.textContent = "-";
     }
-}
-
-function setupOriginalPlayer(audioContext, audioBuffer) {
-    if (!originalPlayer) {
-        originalPlayer =
-            new AudioPlayer(audioContext);
-    }
-
-    originalPlayer.setBuffer(audioBuffer);
-
-    updateOriginalPlaybackUI();
-}
-
-function setupProcessedPlayer(audioContext, audioBuffer) {
-    if (!processedPlayer) {
-        processedPlayer =
-            new AudioPlayer(audioContext);
-    }
-
-    processedPlayer.setBuffer(audioBuffer);
-
-    updateProcessedPlaybackUI();
-}
-
-function resetProcessedAudio() {
-    if (processedPlayer) {
-        processedPlayer.stop();
-        stopProcessedPlaybackAnimation();
-    }
-
-    setProcessedBuffer(null);
-    setProcessedInfo(EMPTY_AUDIO_INFO);
-    renderProcessingStatus("not processed");
-}
-
-function startOriginalPlaybackAnimation() {
-    stopOriginalPlaybackAnimation();
-
-    function tick() {
-        updateOriginalPlaybackUI();
-
-        if (
-            originalPlayer &&
-            originalPlayer.isPlaying
-        ) {
-            originalPlaybackAnimationId =
-                requestAnimationFrame(tick);
-        }
-    }
-
-    originalPlaybackAnimationId =
-        requestAnimationFrame(tick);
-}
-
-function stopOriginalPlaybackAnimation() {
-    if (originalPlaybackAnimationId !== null) {
-        cancelAnimationFrame(originalPlaybackAnimationId);
-        originalPlaybackAnimationId = null;
-    }
-}
-
-function startProcessedPlaybackAnimation() {
-    stopProcessedPlaybackAnimation();
-
-    function tick() {
-        updateProcessedPlaybackUI();
-
-        if (
-            processedPlayer &&
-            processedPlayer.isPlaying
-        ) {
-            processedPlaybackAnimationId =
-                requestAnimationFrame(tick);
-        }
-    }
-
-    processedPlaybackAnimationId =
-        requestAnimationFrame(tick);
-}
-
-function stopProcessedPlaybackAnimation() {
-    if (processedPlaybackAnimationId !== null) {
-        cancelAnimationFrame(processedPlaybackAnimationId);
-        processedPlaybackAnimationId = null;
-    }
-}
-
-function updateOriginalCurrentTimeFromSlider() {
-    const seekSlider =
-        document.getElementById("originalSeekSlider");
-
-    const currentTimeElement =
-        document.getElementById("originalCurrentTime");
-
-    const totalTimeElement =
-        document.getElementById("originalTotalTime");
-
-    if (!originalPlayer) {
-        return;
-    }
-
-    const durationMs =
-        originalPlayer.getDurationMs();
-
-    const ratio =
-        Number(seekSlider.value) / 1000;
-
-    const previewTimeMs =
-        durationMs * ratio;
-
-    currentTimeElement.textContent =
-        formatDuration(previewTimeMs);
-
-    totalTimeElement.textContent =
-        formatDuration(durationMs);
-}
-
-function updateProcessedCurrentTimeFromSlider() {
-    const seekSlider =
-        document.getElementById("processedSeekSlider");
-
-    const currentTimeElement =
-        document.getElementById("processedCurrentTime");
-
-    const totalTimeElement =
-        document.getElementById("processedTotalTime");
-
-    if (!processedPlayer) {
-        return;
-    }
-
-    const durationMs =
-        processedPlayer.getDurationMs();
-
-    const ratio =
-        Number(seekSlider.value) / 1000;
-
-    const previewTimeMs =
-        durationMs * ratio;
-
-    currentTimeElement.textContent =
-        formatDuration(previewTimeMs);
-
-    totalTimeElement.textContent =
-        formatDuration(durationMs);
 }
 
 async function useRecordedBlobAsOriginalAudio(audioBlob) {
@@ -851,18 +757,22 @@ async function useRecordedBlobAsOriginalAudio(audioBlob) {
     const info =
         analyzeAudioBuffer(audioBuffer);
 
-    if (originalPlayer) {
-        originalPlayer.stop();
-        stopOriginalPlaybackAnimation();
-    }
-
+    stopAndResetTrack(tracks.original);
     resetProcessedAudio();
 
     setOriginalFile(recordedFile);
     setOriginalBuffer(audioBuffer);
     setOriginalInfo(info);
 
-    setupOriginalPlayer(audioContext, audioBuffer);
+    setupTrackPlayer(
+        tracks.original,
+        audioContext,
+        audioBuffer
+    );
+
+    await renderOriginalWaveformWithWaveSurfer(recordedFile);
+
+    tracks.original.syncWaveformToTime(0);
 
     const audioFileInput =
         document.getElementById("audioFileInput");

@@ -64,14 +64,19 @@ span {
     max-width: none;
 }
 
-#originalWaveformCanvas,
-#processedWaveformCanvas {
-    display: block;
+#originalWaveform,
+#processedWaveform {
     width: 100%;
-    height: 260px;
+    min-height: 180px;
     border: 1px solid #d4d4d8;
     border-radius: 6px;
     background: #ffffff;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+#waveform-placeholder {
+    color: #71717a;
 }
 
 .processing-module {
@@ -105,16 +110,6 @@ button:disabled {
 #processingStatus {
     font-weight: 700;
 }
-
-#processedWaveformCanvas {
-    display: block;
-    width: 100%;
-    height: 260px;
-    border: 1px solid #d4d4d8;
-    border-radius: 6px;
-    background: #ffffff;
-}
-
 
 @media (max-width: 900px) {
 
