@@ -129,6 +129,26 @@ button:disabled {
     font-weight: 700;
 }
 
+.export-module {
+    display: grid;
+    gap: 1rem;
+}
+
+.export-module input[type="text"] {
+    width: 100%;
+    padding: 0.65rem;
+    box-sizing: border-box;
+}
+
+.export-module button {
+    width: fit-content;
+}
+
+.export-module button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 @media (max-width: 900px) {
 
     .input-grid,

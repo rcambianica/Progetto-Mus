@@ -44,6 +44,10 @@ import {
     renderProcessedAudio
 } from "./audio/OfflineRenderer.js";
 
+import {
+    encodeWav
+} from "./audio/WavEncoder.js";
+
 const EMPTY_AUDIO_INFO = {
     durationMs: 0,
     sampleRate: 0,
@@ -119,6 +123,7 @@ function initializeApp() {
     bindPlaybackControls(tracks.processed);
     bindProcessingControls();
     bindMicrophoneRecordingControls();
+    bindExportControls();
 
     subscribe(render);
 
@@ -551,6 +556,9 @@ function bindProcessingControls() {
                 renderProcessingStatus(
                     "processed"
                 );
+                renderExportStatus(
+                    "ready for download"
+                );
             } catch (error) {
                 console.error(error);
                 alert(error.message);
@@ -752,6 +760,158 @@ function bindMicrophoneRecordingControls() {
     });
 }
 
+function bindExportControls() {
+    const downloadButton =
+        document.getElementById(
+            "downloadWavBtn"
+        );
+
+    const fileNameInput =
+        document.getElementById(
+            "exportFileName"
+        );
+
+    fileNameInput.addEventListener(
+        "input",
+        () => {
+            fileNameInput.dataset.userEdited =
+                "true";
+        }
+    );
+
+    downloadButton.addEventListener(
+        "click",
+        () => {
+            try {
+                downloadProcessedAudioAsWav();
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+
+                renderExportStatus(
+                    "export error"
+                );
+            }
+        }
+    );
+}
+
+function downloadProcessedAudioAsWav() {
+    if (!state.processedBuffer) {
+        throw new Error(
+            "No processed audio available. Apply processing first."
+        );
+    }
+
+    renderExportStatus("encoding WAV");
+
+    const wavBlob =
+        encodeWav(
+            state.processedBuffer
+        );
+
+    const objectUrl =
+        URL.createObjectURL(wavBlob);
+
+    const downloadLink =
+        document.createElement("a");
+
+    downloadLink.href =
+        objectUrl;
+
+    downloadLink.download =
+        buildExportFileName();
+
+    document.body.appendChild(
+        downloadLink
+    );
+
+    downloadLink.click();
+    downloadLink.remove();
+
+    /*
+     * La revoca viene rimandata per consentire
+     * al browser di avviare correttamente
+     * il download.
+     */
+    window.setTimeout(
+        () => {
+            URL.revokeObjectURL(
+                objectUrl
+            );
+        },
+        1000
+    );
+
+    renderExportStatus(
+        "download started"
+    );
+}
+
+function buildExportFileName() {
+    const fileNameInput =
+        document.getElementById(
+            "exportFileName"
+        );
+
+    const requestedName =
+        fileNameInput.value.trim();
+
+    const fallbackName =
+        getDefaultExportFileName();
+
+    const sanitizedName =
+        sanitizeFileName(
+            requestedName || fallbackName
+        );
+
+    if (
+        sanitizedName
+            .toLowerCase()
+            .endsWith(".wav")
+    ) {
+        return sanitizedName;
+    }
+
+    return `${sanitizedName}.wav`;
+}
+
+function getDefaultExportFileName() {
+    const originalName =
+        state.originalFile?.name;
+
+    if (!originalName) {
+        return "processed-audio";
+    }
+
+    const lastDotIndex =
+        originalName.lastIndexOf(".");
+
+    const baseName =
+        lastDotIndex > 0
+            ? originalName.slice(
+                0,
+                lastDotIndex
+            )
+            : originalName;
+
+    return `${baseName}-processed`;
+}
+
+function sanitizeFileName(fileName) {
+    const sanitized =
+        fileName
+            .replace(
+                /[<>:"/\\|?*\u0000-\u001F]/g,
+                "-"
+            )
+            .replace(/\s+/g, " ")
+            .trim()
+            .replace(/[. ]+$/g, "");
+
+    return sanitized || "processed-audio";
+}
+
 function handleWaveformInteraction(track, timeMs) {
     if (!track.player || !track.getBuffer()) {
         return;
@@ -833,6 +993,10 @@ function resetProcessedAudio() {
     clearProcessedWaveSurfer();
 
     renderProcessingStatus("not processed");
+
+    renderExportStatus(
+        "no processed audio"
+    );
 }
 
 function startPlaybackAnimation(track) {
@@ -944,6 +1108,7 @@ function render(currentState) {
     renderDelayControls();
     renderNormalizationControls();
     renderLimiterControls();
+    renderExportControls();
 
     updatePlaybackUI(tracks.original);
     updatePlaybackUI(tracks.processed);
@@ -1359,6 +1524,54 @@ function renderDelayControls() {
         `${Math.round(
             settings.mix * 100
         )}%`;
+}
+
+function renderExportControls() {
+    const downloadButton =
+        document.getElementById(
+            "downloadWavBtn"
+        );
+
+    const fileNameInput =
+        document.getElementById(
+            "exportFileName"
+        );
+
+    const hasProcessedAudio =
+        Boolean(
+            state.processedBuffer
+        );
+
+    downloadButton.disabled =
+        !hasProcessedAudio;
+
+    fileNameInput.disabled =
+        !hasProcessedAudio;
+
+    if (!hasProcessedAudio) {
+        return;
+    }
+
+    /*
+     * Non sovrascriviamo un nome modificato
+     * manualmente dall'utente.
+     */
+    if (
+        !fileNameInput.dataset.userEdited
+    ) {
+        fileNameInput.value =
+            getDefaultExportFileName();
+    }
+}
+
+function renderExportStatus(status) {
+    const statusElement =
+        document.getElementById(
+            "exportStatus"
+        );
+
+    statusElement.textContent =
+        status;
 }
 
 function formatSignedDb(value) {

@@ -368,6 +368,30 @@
             </p>
         </section>
 
+        <!-- DOWNLOAD MODULE -->
+        <section class="panel">
+            <h2>Audio Export</h2>
+
+            <div class="export-module">
+                <label for="exportFileName">
+                    File name
+                </label>
+
+                <input type="text" id="exportFileName" value="processed-audio" placeholder="processed-audio">
+
+                <button id="downloadWavBtn" disabled>
+                    Download processed WAV
+                </button>
+
+                <p>
+                    Export status:
+                    <span id="exportStatus">
+                        no processed audio
+                    </span>
+                </p>
+            </div>
+        </section>
+
     </main>
 
     <script type="module" src="js/app.js"></script>
