@@ -2,37 +2,116 @@ import {
     createGainNode
 } from "../processing/GainProcessor.js";
 
-export async function renderProcessedAudio(originalBuffer, settings) {
+import {
+    calculateNormalizationGain
+} from "../processing/Normalizer.js";
+
+export async function renderProcessedAudio(
+    originalBuffer,
+    settings
+) {
     if (!originalBuffer) {
         throw new Error("No original audio loaded.");
     }
 
-    const offlineContext = new OfflineAudioContext(
-        originalBuffer.numberOfChannels,
-        originalBuffer.length,
-        originalBuffer.sampleRate
-    );
+    const processedBeforeNormalization =
+        await renderProcessingChain(
+            originalBuffer,
+            settings
+        );
 
-    const source = offlineContext.createBufferSource();
-    source.buffer = originalBuffer;
+    if (!settings.normalization?.enabled) {
+        return processedBeforeNormalization;
+    }
+
+    const normalizationGain =
+        calculateNormalizationGain(
+            processedBeforeNormalization,
+            settings.normalization.targetDb
+        );
+
+    return await renderGainPass(
+        processedBeforeNormalization,
+        normalizationGain
+    );
+}
+
+async function renderProcessingChain(
+    audioBuffer,
+    settings
+) {
+    const offlineContext =
+        createOfflineContext(audioBuffer);
+
+    const source =
+        offlineContext.createBufferSource();
+
+    source.buffer = audioBuffer;
 
     let currentNode = source;
 
-    const gainSettings = settings.gain;
-
-    if (gainSettings?.enabled) {
-        const gainNode = createGainNode(
-            offlineContext,
-            gainSettings.value
-        );
+    if (settings.gain?.enabled) {
+        const gainNode =
+            createGainNode(
+                offlineContext,
+                settings.gain.value
+            );
 
         currentNode.connect(gainNode);
         currentNode = gainNode;
     }
 
-    currentNode.connect(offlineContext.destination);
+    /*
+     * In futuro inserire qui:
+     *
+     * compressor
+     * EQ
+     * delay
+     * altri effetti
+     */
+
+    currentNode.connect(
+        offlineContext.destination
+    );
 
     source.start(0);
 
     return await offlineContext.startRendering();
+}
+
+async function renderGainPass(
+    audioBuffer,
+    gainValue
+) {
+    const offlineContext =
+        createOfflineContext(audioBuffer);
+
+    const source =
+        offlineContext.createBufferSource();
+
+    source.buffer = audioBuffer;
+
+    const normalizationGainNode =
+        offlineContext.createGain();
+
+    normalizationGainNode.gain.value =
+        gainValue;
+
+    source.connect(normalizationGainNode);
+
+    normalizationGainNode.connect(
+        offlineContext.destination
+    );
+
+    source.start(0);
+
+    return await offlineContext.startRendering();
+}
+
+function createOfflineContext(audioBuffer) {
+    return new OfflineAudioContext(
+        audioBuffer.numberOfChannels,
+        audioBuffer.length,
+        audioBuffer.sampleRate
+    );
 }

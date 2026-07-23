@@ -279,8 +279,20 @@ function bindProcessingControls() {
     const gainSlider =
         document.getElementById("gainSlider");
 
+    const normalizationEnabled =
+        document.getElementById(
+            "normalizationEnabled"
+        );
+
+    const normalizationTarget =
+        document.getElementById(
+            "normalizationTarget"
+        );
+
     const applyButton =
-        document.getElementById("applyProcessingBtn");
+        document.getElementById(
+            "applyProcessingBtn"
+        );
 
     gainSlider.addEventListener("input", () => {
         const gainValue =
@@ -292,52 +304,108 @@ function bindProcessingControls() {
         });
 
         renderGainControls();
+        markProcessingAsChanged();
     });
 
-    applyButton.addEventListener("click", async () => {
-        try {
-            await resumeAudioContext();
+    normalizationEnabled.addEventListener(
+        "change",
+        () => {
+            updateProcessingSettings(
+                "normalization",
+                {
+                    enabled:
+                        normalizationEnabled.checked
+                }
+            );
 
-            if (!state.originalBuffer) {
-                throw new Error("No original audio loaded.");
-            }
+            renderNormalizationControls();
+            markProcessingAsChanged();
+        }
+    );
 
-            renderProcessingStatus("processing");
+    normalizationTarget.addEventListener(
+        "change",
+        () => {
+            const targetDb =
+                Number(normalizationTarget.value);
 
-            stopAndResetTrack(tracks.processed);
+            updateProcessingSettings(
+                "normalization",
+                {
+                    targetDb
+                }
+            );
 
-            const processedBuffer =
-                await renderProcessedAudio(
-                    state.originalBuffer,
-                    state.processingSettings
+            renderNormalizationControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    applyButton.addEventListener(
+        "click",
+        async () => {
+            try {
+                await resumeAudioContext();
+
+                if (!state.originalBuffer) {
+                    throw new Error(
+                        "No original audio loaded."
+                    );
+                }
+
+                renderProcessingStatus(
+                    "processing"
                 );
 
-            const processedInfo =
-                analyzeAudioBuffer(processedBuffer);
+                stopAndResetTrack(
+                    tracks.processed
+                );
 
-            setProcessedBuffer(processedBuffer);
-            setProcessedInfo(processedInfo);
+                const processedBuffer =
+                    await renderProcessedAudio(
+                        state.originalBuffer,
+                        state.processingSettings
+                    );
 
-            setupTrackPlayer(
-                tracks.processed,
-                state.audioContext,
-                processedBuffer
-            );
+                const processedInfo =
+                    analyzeAudioBuffer(
+                        processedBuffer
+                    );
 
-            await renderProcessedWaveformWithWaveSurfer(
-                processedBuffer
-            );
+                setProcessedBuffer(
+                    processedBuffer
+                );
 
-            tracks.processed.syncWaveformToTime(0);
+                setProcessedInfo(
+                    processedInfo
+                );
 
-            renderProcessingStatus("processed");
-        } catch (error) {
-            console.error(error);
-            alert(error.message);
+                setupTrackPlayer(
+                    tracks.processed,
+                    state.audioContext,
+                    processedBuffer
+                );
 
-            renderProcessingStatus("error");
+                await renderProcessedWaveformWithWaveSurfer(
+                    processedBuffer
+                );
+
+                tracks.processed
+                    .syncWaveformToTime(0);
+
+                renderProcessingStatus(
+                    "processed"
+                );
+            } catch (error) {
+                console.error(error);
+                alert(error.message);
+
+                renderProcessingStatus(
+                    "error"
+                );
+            }
         }
-    });
+    );
 }
 
 function bindMicrophoneRecordingControls() {
@@ -596,11 +664,11 @@ function render(currentState) {
     renderOriginalAudioInfo(currentState);
     renderProcessedAudioInfo(currentState);
     renderGainControls();
+    renderNormalizationControls();
 
     updatePlaybackUI(tracks.original);
     updatePlaybackUI(tracks.processed);
 }
-
 function renderOriginalAudioInfo(currentState) {
     const fileNameElement =
         document.getElementById("originalFileName");
@@ -708,6 +776,38 @@ function renderGainControls() {
         gainValue.toFixed(2);
 }
 
+function renderNormalizationControls() {
+    const enabledElement =
+        document.getElementById(
+            "normalizationEnabled"
+        );
+
+    const targetElement =
+        document.getElementById(
+            "normalizationTarget"
+        );
+
+    const targetValueElement =
+        document.getElementById(
+            "normalizationTargetValue"
+        );
+
+    const normalizationSettings =
+        state.processingSettings.normalization;
+
+    enabledElement.checked =
+        normalizationSettings.enabled;
+
+    targetElement.disabled =
+        !normalizationSettings.enabled;
+
+    targetElement.value =
+        String(normalizationSettings.targetDb);
+
+    targetValueElement.textContent =
+        `${normalizationSettings.targetDb.toFixed(2)} dBFS`;
+}
+
 function renderProcessingStatus(status) {
     const statusElement =
         document.getElementById("processingStatus");
@@ -804,6 +904,18 @@ function getExtensionFromMimeType(mimeType) {
     }
 
     return "webm";
+}
+
+function markProcessingAsChanged() {
+    if (state.processedBuffer) {
+        renderProcessingStatus(
+            "settings changed — apply processing again"
+        );
+    } else {
+        renderProcessingStatus(
+            "not processed"
+        );
+    }
 }
 
 function startRecordingTimer() {

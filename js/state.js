@@ -27,6 +27,11 @@ export const state = {
             value: 1.0
         },
 
+        normalization: {
+            enabled: false,
+            targetDb: -1
+        },
+
         compressor: {
             enabled: false,
             threshold: -24,
@@ -38,11 +43,6 @@ export const state = {
         limiter: {
             enabled: false,
             threshold: -1
-        },
-
-        normalization: {
-            enabled: false,
-            targetDb: -1
         },
 
         eq: {
