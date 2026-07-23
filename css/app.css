@@ -149,6 +149,410 @@ button:disabled {
     opacity: 0.5;
 }
 
+.processing-panel {
+    overflow: hidden;
+}
+
+.processing-stack {
+    display: grid;
+    gap: 1rem;
+}
+
+.processing-row {
+    display: grid;
+    gap: 1rem;
+}
+
+.processing-row--tone {
+    grid-template-columns:
+        minmax(230px, 0.7fr)
+        minmax(420px, 1.3fr);
+}
+
+.processing-row--output {
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+}
+
+.processing-module {
+    margin-bottom: 0;
+    min-width: 0;
+}
+
+.processing-module h3 {
+    margin-top: 0;
+}
+
+.processing-module--knob {
+    display: flex;
+    flex-direction: column;
+}
+
+.module-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.module-heading h3 {
+    margin-bottom: 0;
+}
+
+.module-heading .checkbox-label {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+.horizontal-controls-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+    gap: 1rem 1.5rem;
+}
+
+.horizontal-controls-grid--three {
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+}
+
+.horizontal-control {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.horizontal-control label {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.horizontal-control label span {
+    white-space: nowrap;
+}
+
+/* Rotary knob */
+
+.rotary-control {
+    display: grid;
+    justify-items: center;
+    align-content: center;
+    gap: 0.55rem;
+    flex: 1;
+    min-height: 235px;
+}
+
+.knob-native-input {
+    position: absolute;
+    width: 1px !important;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    clip-path: inset(50%);
+}
+
+.rotary-knob {
+    --knob-angle: -67.5deg;
+    --knob-progress: 67.5deg;
+
+    position: relative;
+    width: 138px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+
+    background:
+        conic-gradient(
+            from 225deg,
+            #2563eb 0deg,
+            #2563eb var(--knob-progress),
+            #d4d4d8 var(--knob-progress),
+            #d4d4d8 270deg,
+            transparent 270deg,
+            transparent 360deg
+        );
+
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+
+    filter:
+        drop-shadow(
+            0 8px 12px
+            rgb(24 24 27 / 18%)
+        );
+}
+
+.rotary-knob::before {
+    content: "";
+
+    position: absolute;
+    inset: 11px;
+    border-radius: 50%;
+
+    background:
+        radial-gradient(
+            circle at 35% 30%,
+            #ffffff 0%,
+            #f4f4f5 38%,
+            #d4d4d8 100%
+        );
+
+    border: 1px solid #a1a1aa;
+
+    box-shadow:
+        inset 0 2px 3px
+        rgb(255 255 255 / 80%),
+        inset 0 -4px 8px
+        rgb(24 24 27 / 14%);
+}
+
+.rotary-knob__indicator {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+
+    transform:
+        rotate(
+            var(--knob-angle)
+        );
+}
+
+.rotary-knob__indicator::before {
+    content: "";
+
+    position: absolute;
+    top: 18px;
+    left: 50%;
+
+    width: 4px;
+    height: 32px;
+
+    border-radius: 999px;
+    background: #18181b;
+
+    transform:
+        translateX(-50%);
+}
+
+.rotary-knob:hover:not(.is-disabled) {
+    filter:
+        drop-shadow(
+            0 9px 15px
+            rgb(37 99 235 / 24%)
+        );
+}
+
+.rotary-knob:focus-visible {
+    outline:
+        3px solid
+        rgb(37 99 235 / 35%);
+
+    outline-offset: 5px;
+}
+
+.rotary-knob.is-dragging {
+    cursor: grabbing;
+}
+
+.rotary-knob.is-disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+    filter: grayscale(1);
+}
+
+.knob-scale {
+    width: 145px;
+    display: flex;
+    justify-content: space-between;
+    color: #71717a;
+    font-size: 0.8rem;
+}
+
+.control-value {
+    margin: 0.25rem 0 0;
+    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.rotary-control small {
+    color: #71717a;
+    text-align: center;
+}
+
+/* Vertical EQ */
+
+.eq-module {
+    display: flex;
+    flex-direction: column;
+}
+
+.eq-controls {
+    display: grid;
+    grid-template-columns:
+        repeat(3, minmax(80px, 1fr));
+    justify-items: center;
+    align-items: end;
+    gap: 1rem;
+    flex: 1;
+    min-height: 250px;
+}
+
+.eq-band {
+    display: grid;
+    grid-template-rows:
+        auto 190px auto auto;
+    justify-items: center;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.eq-band__value {
+    min-width: 68px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.vertical-slider-shell {
+    width: 48px;
+    height: 190px;
+
+    display: grid;
+    place-items: center;
+}
+
+.vertical-range {
+    width: 170px !important;
+    height: 24px;
+    margin: 0;
+
+    transform:
+        rotate(-90deg);
+
+    transform-origin: center;
+
+    accent-color: #2563eb;
+}
+
+/*
+ * Dopo la rotazione:
+ * il valore minimo si trova in basso
+ * e il valore massimo in alto.
+ */
+
+.vertical-range:disabled {
+    opacity: 0.4;
+}
+
+.eq-band label {
+    font-weight: 700;
+}
+
+.eq-band small {
+    color: #71717a;
+}
+
+/* Normalization and actions */
+
+.normalization-control {
+    display: grid;
+    gap: 0.75rem;
+    align-content: center;
+    min-height: 185px;
+}
+
+.processing-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+
+    padding-top: 0.5rem;
+}
+
+.processing-actions p {
+    margin: 0;
+}
+
+.primary-button {
+    border: 0;
+    border-radius: 7px;
+    padding: 0.75rem 1.25rem;
+
+    background: #2563eb;
+    color: white;
+    font-weight: 700;
+}
+
+.primary-button:hover {
+    background: #1d4ed8;
+}
+
+.visually-hidden {
+    position: absolute;
+
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+
+    border: 0;
+}
+
+@media (max-width: 1000px) {
+    .processing-row--tone,
+    .processing-row--output {
+        grid-template-columns: 1fr;
+    }
+
+    .horizontal-controls-grid--three {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 700px) {
+    .module-heading {
+        flex-direction: column;
+    }
+
+    .horizontal-controls-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .processing-actions {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .primary-button {
+        width: 100%;
+    }
+
+    .eq-controls {
+        gap: 0.25rem;
+    }
+
+    .vertical-range {
+        width: 150px !important;
+    }
+
+    .vertical-slider-shell {
+        height: 170px;
+    }
+
+    .eq-band {
+        grid-template-rows:
+            auto 170px auto auto;
+    }
+}
+
 @media (max-width: 900px) {
 
     .input-grid,

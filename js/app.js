@@ -1,4 +1,8 @@
 import {
+    initializeRotaryKnobs,
+    refreshAllRotaryKnobs
+} from "./ui/RotaryKnob.js";
+import {
     setOriginalBuffer,
     setOriginalFile,
     setOriginalInfo,
@@ -124,6 +128,8 @@ function initializeApp() {
     bindProcessingControls();
     bindMicrophoneRecordingControls();
     bindExportControls();
+
+    initializeRotaryKnobs();
 
     subscribe(render);
 
@@ -1112,6 +1118,8 @@ function render(currentState) {
 
     updatePlaybackUI(tracks.original);
     updatePlaybackUI(tracks.processed);
+    
+    refreshAllRotaryKnobs();
 }
 
 function renderOriginalAudioInfo(currentState) {

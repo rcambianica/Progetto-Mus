@@ -199,173 +199,317 @@
         </section>
 
         <!-- PROCESSING MODULES -->
-        <section class="panel">
+        <section class="panel processing-panel">
             <h2>Audio Processing</h2>
 
-            <section class="processing-module">
-                <h3>Gain Control</h3>
+            <div class="processing-stack">
 
-                <label for="gainSlider">
-                    Gain
-                </label>
+                <!-- GAIN + EQ -->
+                <div class="processing-row processing-row--tone">
 
-                <input type="range" id="gainSlider" min="0" max="4" value="1" step="0.01">
+                    <section class="processing-module processing-module--knob">
+                        <h3>Gain Control</h3>
 
-                <p>
-                    Gain value:
-                    <span id="gainValue">1.00</span>
-                </p>
-            </section>
+                        <div class="rotary-control">
+                            <label class="visually-hidden" for="gainSlider">
+                                Gain
+                            </label>
 
-            <section class="processing-module">
-                <h3>Three-Band Equalizer</h3>
+                            <input class="knob-native-input" type="range" id="gainSlider" min="0" max="4" value="1"
+                                step="0.01">
 
-                <label class="checkbox-label">
-                    <input type="checkbox" id="eqEnabled">
-                    Enable equalizer
-                </label>
+                            <div class="rotary-knob" data-knob-for="gainSlider" data-default="1" data-unit="×"
+                                role="slider" tabindex="0" aria-label="Gain">
+                                <span class="rotary-knob__indicator"></span>
+                            </div>
 
-                <label for="eqLowGain">
-                    Low — 250 Hz:
-                    <span id="eqLowGainValue">0.0 dB</span>
-                </label>
+                            <div class="knob-scale">
+                                <span>0</span>
+                                <span>4</span>
+                            </div>
 
-                <input type="range" id="eqLowGain" min="-12" max="12" value="0" step="0.5" disabled>
+                            <p class="control-value">
+                                <span id="gainValue">1.00</span>×
+                            </p>
 
-                <label for="eqMidGain">
-                    Mid — 1000 Hz:
-                    <span id="eqMidGainValue">0.0 dB</span>
-                </label>
+                            <small>
+                                Drag vertically or use arrow keys
+                            </small>
+                        </div>
+                    </section>
 
-                <input type="range" id="eqMidGain" min="-12" max="12" value="0" step="0.5" disabled>
+                    <section class="processing-module eq-module">
+                        <div class="module-heading">
+                            <h3>Three-Band Equalizer</h3>
 
-                <label for="eqHighGain">
-                    High — 5000 Hz:
-                    <span id="eqHighGainValue">0.0 dB</span>
-                </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="eqEnabled">
+                                Enable equalizer
+                            </label>
+                        </div>
 
-                <input type="range" id="eqHighGain" min="-12" max="12" value="0" step="0.5" disabled>
-            </section>
+                        <div class="eq-controls">
 
-            <section class="processing-module">
-                <h3>Dynamic Range Compression</h3>
+                            <div class="eq-band">
+                                <span class="eq-band__value" id="eqLowGainValue">
+                                    0.0 dB
+                                </span>
 
-                <label class="checkbox-label">
-                    <input type="checkbox" id="compressorEnabled">
-                    Enable compressor
-                </label>
+                                <div class="vertical-slider-shell">
+                                    <input class="vertical-range" type="range" id="eqLowGain" min="-12" max="12"
+                                        value="0" step="0.5" orient="vertical" disabled>
+                                </div>
 
-                <label for="compressorThreshold">
-                    Threshold:
-                    <span id="compressorThresholdValue">-24 dB</span>
-                </label>
+                                <label for="eqLowGain">
+                                    Low
+                                </label>
 
-                <input type="range" id="compressorThreshold" min="-100" max="0" value="-24" step="1" disabled>
+                                <small>250 Hz</small>
+                            </div>
 
-                <label for="compressorRatio">
-                    Ratio:
-                    <span id="compressorRatioValue">4.0:1</span>
-                </label>
+                            <div class="eq-band">
+                                <span class="eq-band__value" id="eqMidGainValue">
+                                    0.0 dB
+                                </span>
 
-                <input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.1" disabled>
+                                <div class="vertical-slider-shell">
+                                    <input class="vertical-range" type="range" id="eqMidGain" min="-12" max="12"
+                                        value="0" step="0.5" orient="vertical" disabled>
+                                </div>
 
-                <label for="compressorAttack">
-                    Attack:
-                    <span id="compressorAttackValue">0.003 s</span>
-                </label>
+                                <label for="eqMidGain">
+                                    Mid
+                                </label>
 
-                <input type="range" id="compressorAttack" min="0" max="1" value="0.003" step="0.001" disabled>
+                                <small>1000 Hz</small>
+                            </div>
 
-                <label for="compressorRelease">
-                    Release:
-                    <span id="compressorReleaseValue">0.250 s</span>
-                </label>
+                            <div class="eq-band">
+                                <span class="eq-band__value" id="eqHighGainValue">
+                                    0.0 dB
+                                </span>
 
-                <input type="range" id="compressorRelease" min="0" max="1" value="0.25" step="0.01" disabled>
-            </section>
+                                <div class="vertical-slider-shell">
+                                    <input class="vertical-range" type="range" id="eqHighGain" min="-12" max="12"
+                                        value="0" step="0.5" orient="vertical" disabled>
+                                </div>
 
-            <section class="processing-module">
-                <h3>Delay / Echo</h3>
+                                <label for="eqHighGain">
+                                    High
+                                </label>
 
-                <label class="checkbox-label">
-                    <input type="checkbox" id="delayEnabled">
-                    Enable delay
-                </label>
+                                <small>5000 Hz</small>
+                            </div>
 
-                <label for="delayTime">
-                    Delay time:
-                    <span id="delayTimeValue">0.250 s</span>
-                </label>
+                        </div>
+                    </section>
 
-                <input type="range" id="delayTime" min="0" max="2" value="0.25" step="0.01" disabled>
+                </div>
 
-                <label for="delayFeedback">
-                    Feedback:
-                    <span id="delayFeedbackValue">30%</span>
-                </label>
+                <!-- COMPRESSOR -->
+                <section class="processing-module">
+                    <div class="module-heading">
+                        <h3>Dynamic Range Compression</h3>
 
-                <input type="range" id="delayFeedback" min="0" max="0.9" value="0.3" step="0.01" disabled>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="compressorEnabled">
+                            Enable compressor
+                        </label>
+                    </div>
 
-                <label for="delayMix">
-                    Wet mix:
-                    <span id="delayMixValue">25%</span>
-                </label>
+                    <div class="horizontal-controls-grid">
 
-                <input type="range" id="delayMix" min="0" max="1" value="0.25" step="0.01" disabled>
-            </section>
+                        <div class="horizontal-control">
+                            <label for="compressorThreshold">
+                                Threshold
+                                <span id="compressorThresholdValue">
+                                    -24 dB
+                                </span>
+                            </label>
 
-            <section class="processing-module">
-                <h3>Peak Normalization</h3>
+                            <input type="range" id="compressorThreshold" min="-100" max="0" value="-24" step="1"
+                                disabled>
+                        </div>
 
-                <label class="checkbox-label">
-                    <input type="checkbox" id="normalizationEnabled">
-                    Enable normalization
-                </label>
+                        <div class="horizontal-control">
+                            <label for="compressorRatio">
+                                Ratio
+                                <span id="compressorRatioValue">
+                                    4.0:1
+                                </span>
+                            </label>
 
-                <label for="normalizationTarget">
-                    Target peak
-                </label>
+                            <input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.1" disabled>
+                        </div>
 
-                <select id="normalizationTarget" disabled>
-                    <option value="0">0 dBFS</option>
-                    <option value="-1" selected>-1 dBFS</option>
-                    <option value="-3">-3 dBFS</option>
-                </select>
+                        <div class="horizontal-control">
+                            <label for="compressorAttack">
+                                Attack
+                                <span id="compressorAttackValue">
+                                    0.003 s
+                                </span>
+                            </label>
 
-                <p>
-                    Selected target:
-                    <span id="normalizationTargetValue">-1.00 dBFS</span>
-                </p>
-            </section>
+                            <input type="range" id="compressorAttack" min="0" max="1" value="0.003" step="0.001"
+                                disabled>
+                        </div>
 
-            <section class="processing-module">
-                <h3>Limiter</h3>
+                        <div class="horizontal-control">
+                            <label for="compressorRelease">
+                                Release
+                                <span id="compressorReleaseValue">
+                                    0.250 s
+                                </span>
+                            </label>
 
-                <label class="checkbox-label">
-                    <input type="checkbox" id="limiterEnabled">
-                    Enable limiter
-                </label>
+                            <input type="range" id="compressorRelease" min="0" max="1" value="0.25" step="0.01"
+                                disabled>
+                        </div>
 
-                <label for="limiterThreshold">
-                    Threshold:
-                    <span id="limiterThresholdValue">-1.0 dBFS</span>
-                </label>
+                    </div>
+                </section>
 
-                <input type="range" id="limiterThreshold" min="-20" max="0" value="-1" step="0.1" disabled>
+                <!-- DELAY -->
+                <section class="processing-module">
+                    <div class="module-heading">
+                        <h3>Delay / Echo</h3>
 
-                <p>
-                    The limiter is applied as the final processing stage.
-                </p>
-            </section>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="delayEnabled">
+                            Enable delay
+                        </label>
+                    </div>
 
-            <button id="applyProcessingBtn">
-                Apply Processing
-            </button>
+                    <div class="horizontal-controls-grid horizontal-controls-grid--three">
 
-            <p>
-                Processing status:
-                <span id="processingStatus">not processed</span>
-            </p>
+                        <div class="horizontal-control">
+                            <label for="delayTime">
+                                Delay time
+                                <span id="delayTimeValue">
+                                    0.250 s
+                                </span>
+                            </label>
+
+                            <input type="range" id="delayTime" min="0" max="2" value="0.25" step="0.01" disabled>
+                        </div>
+
+                        <div class="horizontal-control">
+                            <label for="delayFeedback">
+                                Feedback
+                                <span id="delayFeedbackValue">
+                                    30%
+                                </span>
+                            </label>
+
+                            <input type="range" id="delayFeedback" min="0" max="0.9" value="0.3" step="0.01" disabled>
+                        </div>
+
+                        <div class="horizontal-control">
+                            <label for="delayMix">
+                                Wet mix
+                                <span id="delayMixValue">
+                                    25%
+                                </span>
+                            </label>
+
+                            <input type="range" id="delayMix" min="0" max="1" value="0.25" step="0.01" disabled>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- NORMALIZATION + LIMITER -->
+                <div class="processing-row processing-row--output">
+
+                    <section class="processing-module">
+                        <h3>Peak Normalization</h3>
+
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="normalizationEnabled">
+                            Enable normalization
+                        </label>
+
+                        <div class="normalization-control">
+                            <label for="normalizationTarget">
+                                Target peak
+                            </label>
+
+                            <select id="normalizationTarget" disabled>
+                                <option value="0">
+                                    0 dBFS
+                                </option>
+
+                                <option value="-1" selected>
+                                    -1 dBFS
+                                </option>
+
+                                <option value="-3">
+                                    -3 dBFS
+                                </option>
+                            </select>
+
+                            <p class="control-value">
+                                <span id="normalizationTargetValue">
+                                    -1.00 dBFS
+                                </span>
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="processing-module processing-module--knob">
+                        <h3>Limiter</h3>
+
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="limiterEnabled">
+                            Enable limiter
+                        </label>
+
+                        <div class="rotary-control">
+                            <label class="visually-hidden" for="limiterThreshold">
+                                Limiter threshold
+                            </label>
+
+                            <input class="knob-native-input" type="range" id="limiterThreshold" min="-20" max="0"
+                                value="-1" step="0.1" disabled>
+
+                            <div class="rotary-knob" data-knob-for="limiterThreshold" data-default="-1"
+                                data-unit=" dBFS" role="slider" tabindex="-1" aria-label="Limiter threshold">
+                                <span class="rotary-knob__indicator"></span>
+                            </div>
+
+                            <div class="knob-scale">
+                                <span>-20</span>
+                                <span>0</span>
+                            </div>
+
+                            <p class="control-value">
+                                <span id="limiterThresholdValue">
+                                    -1.0 dBFS
+                                </span>
+                            </p>
+
+                            <small>
+                                Final sample-peak ceiling
+                            </small>
+                        </div>
+                    </section>
+
+                </div>
+
+                <div class="processing-actions">
+                    <button id="applyProcessingBtn" class="primary-button">
+                        Apply Processing
+                    </button>
+
+                    <p>
+                        Processing status:
+                        <span id="processingStatus">
+                            not processed
+                        </span>
+                    </p>
+                </div>
+
+            </div>
         </section>
 
         <!-- DOWNLOAD MODULE -->
