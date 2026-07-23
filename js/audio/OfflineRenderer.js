@@ -18,6 +18,11 @@ import {
     createThreeBandEq
 } from "../processing/EQProcessor.js";
 
+import {
+    calculateDelayTailSeconds,
+    createDelayEffect
+} from "../processing/DelayProcessor.js";
+
 export async function renderProcessedAudio(
     originalBuffer,
     settings
@@ -75,8 +80,18 @@ async function renderBaseProcessingChain(
     audioBuffer,
     settings
 ) {
+    const delayTailSeconds =
+        settings.delay?.enabled
+            ? calculateDelayTailSeconds(
+                settings.delay
+            )
+            : 0;
+
     const offlineContext =
-        createOfflineContext(audioBuffer);
+        createOfflineContext(
+            audioBuffer,
+            delayTailSeconds
+        );
 
     const source =
         offlineContext.createBufferSource();
@@ -118,8 +133,27 @@ async function renderBaseProcessingChain(
                 settings.compressor
             );
 
-        currentNode.connect(compressorNode);
-        currentNode = compressorNode;
+        currentNode.connect(
+            compressorNode
+        );
+
+        currentNode =
+            compressorNode;
+    }
+
+    if (settings.delay?.enabled) {
+        const delayEffect =
+            createDelayEffect(
+                offlineContext,
+                settings.delay
+            );
+
+        currentNode.connect(
+            delayEffect.input
+        );
+
+        currentNode =
+            delayEffect.output;
     }
 
     currentNode.connect(
@@ -189,10 +223,25 @@ async function renderLimiterPass(
     return await offlineContext.startRendering();
 }
 
-function createOfflineContext(audioBuffer) {
+function createOfflineContext(
+    audioBuffer,
+    additionalDurationSeconds = 0
+) {
+    const additionalFrames =
+        Math.ceil(
+            Math.max(
+                0,
+                additionalDurationSeconds
+            ) * audioBuffer.sampleRate
+        );
+
+    const totalLength =
+        audioBuffer.length +
+        additionalFrames;
+
     return new OfflineAudioContext(
         audioBuffer.numberOfChannels,
-        audioBuffer.length,
+        totalLength,
         audioBuffer.sampleRate
     );
 }

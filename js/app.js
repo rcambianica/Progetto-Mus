@@ -373,6 +373,48 @@ function bindProcessingControls() {
         );
     }
 
+    const delayEnabled =
+        document.getElementById(
+            "delayEnabled"
+        );
+
+    const delayControls = [
+        {
+            element: delayTime,
+            settingName: "time"
+        },
+        {
+            element: delayFeedback,
+            settingName: "feedback"
+        },
+        {
+            element: delayMix,
+            settingName: "mix"
+        }
+    ];
+
+    for (
+        const {
+            element,
+            settingName
+        } of delayControls
+    ) {
+        element.addEventListener(
+            "input",
+            () => {
+                updateProcessingSettings(
+                    "delay",
+                    {
+                        [settingName]:
+                            Number(element.value)
+                    }
+                );
+
+                renderDelayControls();
+                markProcessingAsChanged();
+            }
+        );
+    }
     limiterEnabled.addEventListener(
         "change",
         () => {
@@ -619,6 +661,22 @@ function bindProcessingControls() {
             );
 
             renderEqControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    delayEnabled.addEventListener(
+        "change",
+        () => {
+            updateProcessingSettings(
+                "delay",
+                {
+                    enabled:
+                        delayEnabled.checked
+                }
+            );
+
+            renderDelayControls();
             markProcessingAsChanged();
         }
     );
@@ -882,8 +940,9 @@ function render(currentState) {
 
     renderGainControls();
     renderEqControls();
-    renderNormalizationControls();
     renderCompressorControls();
+    renderDelayControls();
+    renderNormalizationControls();
     renderLimiterControls();
 
     updatePlaybackUI(tracks.original);
@@ -1226,6 +1285,80 @@ function renderEqControls() {
                 control.value
             );
     }
+}
+
+function renderDelayControls() {
+    const enabledElement =
+        document.getElementById(
+            "delayEnabled"
+        );
+
+    const timeElement =
+        document.getElementById(
+            "delayTime"
+        );
+
+    const feedbackElement =
+        document.getElementById(
+            "delayFeedback"
+        );
+
+    const mixElement =
+        document.getElementById(
+            "delayMix"
+        );
+
+    const timeValueElement =
+        document.getElementById(
+            "delayTimeValue"
+        );
+
+    const feedbackValueElement =
+        document.getElementById(
+            "delayFeedbackValue"
+        );
+
+    const mixValueElement =
+        document.getElementById(
+            "delayMixValue"
+        );
+
+    const settings =
+        state.processingSettings.delay;
+
+    enabledElement.checked =
+        settings.enabled;
+
+    timeElement.disabled =
+        !settings.enabled;
+
+    feedbackElement.disabled =
+        !settings.enabled;
+
+    mixElement.disabled =
+        !settings.enabled;
+
+    timeElement.value =
+        String(settings.time);
+
+    feedbackElement.value =
+        String(settings.feedback);
+
+    mixElement.value =
+        String(settings.mix);
+
+    timeValueElement.textContent =
+        `${settings.time.toFixed(3)} s`;
+
+    feedbackValueElement.textContent =
+        `${Math.round(
+            settings.feedback * 100
+        )}%`;
+
+    mixValueElement.textContent =
+        `${Math.round(
+            settings.mix * 100
+        )}%`;
 }
 
 function formatSignedDb(value) {
