@@ -6,6 +6,10 @@ import {
     calculateNormalizationGain
 } from "../processing/Normalizer.js";
 
+import {
+    createCompressorNode
+} from "../processing/CompressorProcessor.js";
+
 export async function renderProcessedAudio(
     originalBuffer,
     settings
@@ -61,14 +65,16 @@ async function renderProcessingChain(
         currentNode = gainNode;
     }
 
-    /*
-     * In futuro inserire qui:
-     *
-     * compressor
-     * EQ
-     * delay
-     * altri effetti
-     */
+    if (settings.compressor?.enabled) {
+        const compressorNode =
+            createCompressorNode(
+                offlineContext,
+                settings.compressor
+            );
+
+        currentNode.connect(compressorNode);
+        currentNode = compressorNode;
+    }
 
     currentNode.connect(
         offlineContext.destination

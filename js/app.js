@@ -289,6 +289,31 @@ function bindProcessingControls() {
             "normalizationTarget"
         );
 
+    const compressorEnabled =
+        document.getElementById(
+            "compressorEnabled"
+        );
+
+    const compressorThreshold =
+        document.getElementById(
+            "compressorThreshold"
+        );
+
+    const compressorRatio =
+        document.getElementById(
+            "compressorRatio"
+        );
+
+    const compressorAttack =
+        document.getElementById(
+            "compressorAttack"
+        );
+
+    const compressorRelease =
+        document.getElementById(
+            "compressorRelease"
+        );
+
     const applyButton =
         document.getElementById(
             "applyProcessingBtn"
@@ -404,6 +429,94 @@ function bindProcessingControls() {
                     "error"
                 );
             }
+        }
+    );
+
+    compressorEnabled.addEventListener(
+        "change",
+        () => {
+            updateProcessingSettings(
+                "compressor",
+                {
+                    enabled:
+                        compressorEnabled.checked
+                }
+            );
+
+            renderCompressorControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    compressorThreshold.addEventListener(
+        "input",
+        () => {
+            updateProcessingSettings(
+                "compressor",
+                {
+                    threshold:
+                        Number(
+                            compressorThreshold.value
+                        )
+                }
+            );
+
+            renderCompressorControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    compressorRatio.addEventListener(
+        "input",
+        () => {
+            updateProcessingSettings(
+                "compressor",
+                {
+                    ratio:
+                        Number(
+                            compressorRatio.value
+                        )
+                }
+            );
+
+            renderCompressorControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    compressorAttack.addEventListener(
+        "input",
+        () => {
+            updateProcessingSettings(
+                "compressor",
+                {
+                    attack:
+                        Number(
+                            compressorAttack.value
+                        )
+                }
+            );
+
+            renderCompressorControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    compressorRelease.addEventListener(
+        "input",
+        () => {
+            updateProcessingSettings(
+                "compressor",
+                {
+                    release:
+                        Number(
+                            compressorRelease.value
+                        )
+                }
+            );
+
+            renderCompressorControls();
+            markProcessingAsChanged();
         }
     );
 }
@@ -665,6 +778,7 @@ function render(currentState) {
     renderProcessedAudioInfo(currentState);
     renderGainControls();
     renderNormalizationControls();
+    renderCompressorControls();
 
     updatePlaybackUI(tracks.original);
     updatePlaybackUI(tracks.processed);
@@ -806,6 +920,95 @@ function renderNormalizationControls() {
 
     targetValueElement.textContent =
         `${normalizationSettings.targetDb.toFixed(2)} dBFS`;
+}
+
+function renderCompressorControls() {
+    const enabledElement =
+        document.getElementById(
+            "compressorEnabled"
+        );
+
+    const thresholdElement =
+        document.getElementById(
+            "compressorThreshold"
+        );
+
+    const ratioElement =
+        document.getElementById(
+            "compressorRatio"
+        );
+
+    const attackElement =
+        document.getElementById(
+            "compressorAttack"
+        );
+
+    const releaseElement =
+        document.getElementById(
+            "compressorRelease"
+        );
+
+    const thresholdValueElement =
+        document.getElementById(
+            "compressorThresholdValue"
+        );
+
+    const ratioValueElement =
+        document.getElementById(
+            "compressorRatioValue"
+        );
+
+    const attackValueElement =
+        document.getElementById(
+            "compressorAttackValue"
+        );
+
+    const releaseValueElement =
+        document.getElementById(
+            "compressorReleaseValue"
+        );
+
+    const settings =
+        state.processingSettings.compressor;
+
+    enabledElement.checked =
+        settings.enabled;
+
+    thresholdElement.disabled =
+        !settings.enabled;
+
+    ratioElement.disabled =
+        !settings.enabled;
+
+    attackElement.disabled =
+        !settings.enabled;
+
+    releaseElement.disabled =
+        !settings.enabled;
+
+    thresholdElement.value =
+        String(settings.threshold);
+
+    ratioElement.value =
+        String(settings.ratio);
+
+    attackElement.value =
+        String(settings.attack);
+
+    releaseElement.value =
+        String(settings.release);
+
+    thresholdValueElement.textContent =
+        `${settings.threshold.toFixed(0)} dB`;
+
+    ratioValueElement.textContent =
+        `${settings.ratio.toFixed(1)}:1`;
+
+    attackValueElement.textContent =
+        `${settings.attack.toFixed(3)} s`;
+
+    releaseValueElement.textContent =
+        `${settings.release.toFixed(3)} s`;
 }
 
 function renderProcessingStatus(status) {

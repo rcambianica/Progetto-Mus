@@ -241,6 +241,43 @@
                 </p>
             </section>
 
+            <section class="processing-module">
+                <h3>Dynamic Range Compression</h3>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="compressorEnabled">
+                    Enable compressor
+                </label>
+
+                <label for="compressorThreshold">
+                    Threshold:
+                    <span id="compressorThresholdValue">-24 dB</span>
+                </label>
+
+                <input type="range" id="compressorThreshold" min="-100" max="0" value="-24" step="1" disabled>
+
+                <label for="compressorRatio">
+                    Ratio:
+                    <span id="compressorRatioValue">4.0:1</span>
+                </label>
+
+                <input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.1" disabled>
+
+                <label for="compressorAttack">
+                    Attack:
+                    <span id="compressorAttackValue">0.003 s</span>
+                </label>
+
+                <input type="range" id="compressorAttack" min="0" max="1" value="0.003" step="0.001" disabled>
+
+                <label for="compressorRelease">
+                    Release:
+                    <span id="compressorReleaseValue">0.250 s</span>
+                </label>
+
+                <input type="range" id="compressorRelease" min="0" max="1" value="0.25" step="0.01" disabled>
+            </section>
+
             <button id="applyProcessingBtn">
                 Apply Processing
             </button>
