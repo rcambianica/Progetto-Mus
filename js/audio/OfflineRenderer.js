@@ -11,7 +11,8 @@ import {
 } from "../processing/Normalizer.js";
 
 import {
-    createLimiterNode
+    createLimiterNode,
+    enforcePeakCeiling
 } from "../processing/LimiterProcessor.js";
 
 import {
@@ -66,12 +67,27 @@ export async function renderProcessedAudio(
      * successivo rialzi nuovamente i picchi.
      */
     if (settings.limiter?.enabled) {
-        processedBuffer =
-            await renderLimiterPass(
-                processedBuffer,
-                settings.limiter
-            );
-    }
+    /*
+     * Primo stadio:
+     * DynamicsCompressorNode configurato
+     * come limiter.
+     */
+    processedBuffer =
+        await renderLimiterPass(
+            processedBuffer,
+            settings.limiter
+        );
+
+    /*
+     * Secondo stadio:
+     * controllo deterministico del sample peak.
+     */
+    processedBuffer =
+        enforcePeakCeiling(
+            processedBuffer,
+            settings.limiter.threshold
+        );
+}
 
     return processedBuffer;
 }
