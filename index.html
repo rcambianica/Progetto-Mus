@@ -218,6 +218,36 @@
             </section>
 
             <section class="processing-module">
+                <h3>Three-Band Equalizer</h3>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="eqEnabled">
+                    Enable equalizer
+                </label>
+
+                <label for="eqLowGain">
+                    Low — 250 Hz:
+                    <span id="eqLowGainValue">0.0 dB</span>
+                </label>
+
+                <input type="range" id="eqLowGain" min="-12" max="12" value="0" step="0.5" disabled>
+
+                <label for="eqMidGain">
+                    Mid — 1000 Hz:
+                    <span id="eqMidGainValue">0.0 dB</span>
+                </label>
+
+                <input type="range" id="eqMidGain" min="-12" max="12" value="0" step="0.5" disabled>
+
+                <label for="eqHighGain">
+                    High — 5000 Hz:
+                    <span id="eqHighGainValue">0.0 dB</span>
+                </label>
+
+                <input type="range" id="eqHighGain" min="-12" max="12" value="0" step="0.5" disabled>
+            </section>
+
+            <section class="processing-module">
                 <h3>Peak Normalization</h3>
 
                 <label class="checkbox-label">
@@ -276,6 +306,26 @@
                 </label>
 
                 <input type="range" id="compressorRelease" min="0" max="1" value="0.25" step="0.01" disabled>
+            </section>
+
+            <section class="processing-module">
+                <h3>Limiter</h3>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="limiterEnabled">
+                    Enable limiter
+                </label>
+
+                <label for="limiterThreshold">
+                    Threshold:
+                    <span id="limiterThresholdValue">-1.0 dBFS</span>
+                </label>
+
+                <input type="range" id="limiterThreshold" min="-20" max="0" value="-1" step="0.1" disabled>
+
+                <p>
+                    The limiter is applied as the final processing stage.
+                </p>
             </section>
 
             <button id="applyProcessingBtn">

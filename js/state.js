@@ -47,9 +47,16 @@ export const state = {
 
         eq: {
             enabled: false,
+
             lowGain: 0,
             midGain: 0,
-            highGain: 0
+            highGain: 0,
+
+            lowFrequency: 250,
+            midFrequency: 1000,
+            highFrequency: 5000,
+
+            midQ: 1
         },
 
         delay: {

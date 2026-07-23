@@ -276,6 +276,17 @@ function bindPlaybackControls(track) {
 }
 
 function bindProcessingControls() {
+
+    const limiterEnabled =
+        document.getElementById(
+            "limiterEnabled"
+        );
+
+    const limiterThreshold =
+        document.getElementById(
+            "limiterThreshold"
+        );
+
     const gainSlider =
         document.getElementById("gainSlider");
 
@@ -318,6 +329,83 @@ function bindProcessingControls() {
         document.getElementById(
             "applyProcessingBtn"
         );
+
+    const eqEnabled =
+        document.getElementById(
+            "eqEnabled"
+        );
+
+    const eqGainControls = [
+        {
+            element: eqLowGain,
+            settingName: "lowGain"
+        },
+        {
+            element: eqMidGain,
+            settingName: "midGain"
+        },
+        {
+            element: eqHighGain,
+            settingName: "highGain"
+        }
+    ];
+
+    for (
+        const {
+            element,
+            settingName
+        } of eqGainControls
+    ) {
+        element.addEventListener(
+            "input",
+            () => {
+                updateProcessingSettings(
+                    "eq",
+                    {
+                        [settingName]:
+                            Number(element.value)
+                    }
+                );
+
+                renderEqControls();
+                markProcessingAsChanged();
+            }
+        );
+    }
+
+    limiterEnabled.addEventListener(
+        "change",
+        () => {
+            updateProcessingSettings(
+                "limiter",
+                {
+                    enabled:
+                        limiterEnabled.checked
+                }
+            );
+
+            renderLimiterControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    limiterThreshold.addEventListener(
+        "input",
+        () => {
+            updateProcessingSettings(
+                "limiter",
+                {
+                    threshold:
+                        Number(
+                            limiterThreshold.value
+                        )
+                }
+            );
+
+            renderLimiterControls();
+            markProcessingAsChanged();
+        }
+    );
 
     gainSlider.addEventListener("input", () => {
         const gainValue =
@@ -516,6 +604,21 @@ function bindProcessingControls() {
             );
 
             renderCompressorControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    eqEnabled.addEventListener(
+        "change",
+        () => {
+            updateProcessingSettings(
+                "eq",
+                {
+                    enabled: eqEnabled.checked
+                }
+            );
+
+            renderEqControls();
             markProcessingAsChanged();
         }
     );
@@ -776,13 +879,17 @@ function updateCurrentTimeFromSlider(track) {
 function render(currentState) {
     renderOriginalAudioInfo(currentState);
     renderProcessedAudioInfo(currentState);
+
     renderGainControls();
+    renderEqControls();
     renderNormalizationControls();
     renderCompressorControls();
+    renderLimiterControls();
 
     updatePlaybackUI(tracks.original);
     updatePlaybackUI(tracks.processed);
 }
+
 function renderOriginalAudioInfo(currentState) {
     const fileNameElement =
         document.getElementById("originalFileName");
@@ -870,6 +977,38 @@ function renderProcessedAudioInfo(currentState) {
 
     peakDbElement.textContent =
         formatDb(currentState.processedInfo.peakDb);
+}
+
+function renderLimiterControls() {
+    const enabledElement =
+        document.getElementById(
+            "limiterEnabled"
+        );
+
+    const thresholdElement =
+        document.getElementById(
+            "limiterThreshold"
+        );
+
+    const thresholdValueElement =
+        document.getElementById(
+            "limiterThresholdValue"
+        );
+
+    const settings =
+        state.processingSettings.limiter;
+
+    enabledElement.checked =
+        settings.enabled;
+
+    thresholdElement.disabled =
+        !settings.enabled;
+
+    thresholdElement.value =
+        String(settings.threshold);
+
+    thresholdValueElement.textContent =
+        `${settings.threshold.toFixed(1)} dBFS`;
 }
 
 function renderGainControls() {
@@ -1033,6 +1172,72 @@ function renderRecordingStatus(status) {
     } else {
         mimeTypeElement.textContent = "-";
     }
+}
+
+function renderEqControls() {
+    const enabledElement =
+        document.getElementById(
+            "eqEnabled"
+        );
+
+    const settings =
+        state.processingSettings.eq;
+
+    enabledElement.checked =
+        settings.enabled;
+
+    const controls = [
+        {
+            sliderId: "eqLowGain",
+            valueId: "eqLowGainValue",
+            value: settings.lowGain
+        },
+        {
+            sliderId: "eqMidGain",
+            valueId: "eqMidGainValue",
+            value: settings.midGain
+        },
+        {
+            sliderId: "eqHighGain",
+            valueId: "eqHighGainValue",
+            value: settings.highGain
+        }
+    ];
+
+    for (const control of controls) {
+        const slider =
+            document.getElementById(
+                control.sliderId
+            );
+
+        const valueElement =
+            document.getElementById(
+                control.valueId
+            );
+
+        slider.disabled =
+            !settings.enabled;
+
+        slider.value =
+            String(control.value);
+
+        valueElement.textContent =
+            formatSignedDb(
+                control.value
+            );
+    }
+}
+
+function formatSignedDb(value) {
+    const numericValue =
+        Number(value);
+
+    const prefix =
+        numericValue > 0
+            ? "+"
+            : "";
+
+    return `${prefix}${numericValue.toFixed(1)} dB`;
 }
 
 async function useRecordedBlobAsOriginalAudio(audioBlob) {

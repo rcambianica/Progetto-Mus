@@ -3,12 +3,20 @@ import {
 } from "../processing/GainProcessor.js";
 
 import {
+    createCompressorNode
+} from "../processing/CompressorProcessor.js";
+
+import {
     calculateNormalizationGain
 } from "../processing/Normalizer.js";
 
 import {
-    createCompressorNode
-} from "../processing/CompressorProcessor.js";
+    createLimiterNode
+} from "../processing/LimiterProcessor.js";
+
+import {
+    createThreeBandEq
+} from "../processing/EQProcessor.js";
 
 export async function renderProcessedAudio(
     originalBuffer,
@@ -18,29 +26,52 @@ export async function renderProcessedAudio(
         throw new Error("No original audio loaded.");
     }
 
-    const processedBeforeNormalization =
-        await renderProcessingChain(
+    /*
+     * Primo passaggio:
+     * gain e compressione.
+     */
+    let processedBuffer =
+        await renderBaseProcessingChain(
             originalBuffer,
             settings
         );
 
-    if (!settings.normalization?.enabled) {
-        return processedBeforeNormalization;
+    /*
+     * Secondo passaggio:
+     * normalizzazione rispetto al risultato
+     * di gain e compressione.
+     */
+    if (settings.normalization?.enabled) {
+        const normalizationGain =
+            calculateNormalizationGain(
+                processedBuffer,
+                settings.normalization.targetDb
+            );
+
+        processedBuffer =
+            await renderGainPass(
+                processedBuffer,
+                normalizationGain
+            );
     }
 
-    const normalizationGain =
-        calculateNormalizationGain(
-            processedBeforeNormalization,
-            settings.normalization.targetDb
-        );
+    /*
+     * Ultimo passaggio:
+     * limiter, affinché nessun processing
+     * successivo rialzi nuovamente i picchi.
+     */
+    if (settings.limiter?.enabled) {
+        processedBuffer =
+            await renderLimiterPass(
+                processedBuffer,
+                settings.limiter
+            );
+    }
 
-    return await renderGainPass(
-        processedBeforeNormalization,
-        normalizationGain
-    );
+    return processedBuffer;
 }
 
-async function renderProcessingChain(
+async function renderBaseProcessingChain(
     audioBuffer,
     settings
 ) {
@@ -63,6 +94,21 @@ async function renderProcessingChain(
 
         currentNode.connect(gainNode);
         currentNode = gainNode;
+    }
+
+    if (settings.eq?.enabled) {
+        const equalizer =
+            createThreeBandEq(
+                offlineContext,
+                settings.eq
+            );
+
+        currentNode.connect(
+            equalizer.input
+        );
+
+        currentNode =
+            equalizer.output;
     }
 
     if (settings.compressor?.enabled) {
@@ -97,15 +143,44 @@ async function renderGainPass(
 
     source.buffer = audioBuffer;
 
-    const normalizationGainNode =
+    const gainNode =
         offlineContext.createGain();
 
-    normalizationGainNode.gain.value =
+    gainNode.gain.value =
         gainValue;
 
-    source.connect(normalizationGainNode);
+    source.connect(gainNode);
 
-    normalizationGainNode.connect(
+    gainNode.connect(
+        offlineContext.destination
+    );
+
+    source.start(0);
+
+    return await offlineContext.startRendering();
+}
+
+async function renderLimiterPass(
+    audioBuffer,
+    settings
+) {
+    const offlineContext =
+        createOfflineContext(audioBuffer);
+
+    const source =
+        offlineContext.createBufferSource();
+
+    source.buffer = audioBuffer;
+
+    const limiterNode =
+        createLimiterNode(
+            offlineContext,
+            settings
+        );
+
+    source.connect(limiterNode);
+
+    limiterNode.connect(
         offlineContext.destination
     );
 
