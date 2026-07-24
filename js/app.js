@@ -460,6 +460,26 @@ function bindProcessingControls() {
             "delayMix"
         );
 
+    const reverbEnabled =
+        document.getElementById(
+            "reverbEnabled"
+        );
+
+    const reverbDuration =
+        document.getElementById(
+            "reverbDuration"
+        );
+
+    const reverbDecay =
+        document.getElementById(
+            "reverbDecay"
+        );
+
+    const reverbMix =
+        document.getElementById(
+            "reverbMix"
+        );
+
     distortionEnabled.addEventListener(
         "change",
         () => {
@@ -619,6 +639,61 @@ function bindProcessingControls() {
             }
         );
     }
+
+    reverbEnabled.addEventListener(
+        "change",
+        () => {
+            updateProcessingSettings(
+                "reverb",
+                {
+                    enabled:
+                        reverbEnabled.checked
+                }
+            );
+
+            renderReverbControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    const reverbControls = [
+        {
+            element: reverbDuration,
+            settingName: "duration"
+        },
+        {
+            element: reverbDecay,
+            settingName: "decay"
+        },
+        {
+            element: reverbMix,
+            settingName: "mix"
+        }
+    ];
+
+    for (
+        const {
+            element,
+            settingName
+        } of reverbControls
+    ) {
+        element.addEventListener(
+            "input",
+            () => {
+                updateProcessingSettings(
+                    "reverb",
+                    {
+                        [settingName]:
+                            Number(element.value)
+                    }
+                );
+
+                renderReverbControls();
+                markProcessingAsChanged();
+            }
+        );
+    }
+
     limiterEnabled.addEventListener(
         "change",
         () => {
@@ -1430,6 +1505,7 @@ function render(currentState) {
     renderDistortionControls();
     renderChorusControls();
     renderDelayControls();
+    renderReverbControls();
     renderNormalizationControls();
     renderLimiterControls();
     renderExportControls();
@@ -1968,6 +2044,78 @@ function renderDelayControls() {
         `${Math.round(
             settings.feedback * 100
         )}%`;
+
+    mixValueElement.textContent =
+        `${Math.round(
+            settings.mix * 100
+        )}%`;
+}
+
+function renderReverbControls() {
+    const enabledElement =
+        document.getElementById(
+            "reverbEnabled"
+        );
+
+    const durationElement =
+        document.getElementById(
+            "reverbDuration"
+        );
+
+    const decayElement =
+        document.getElementById(
+            "reverbDecay"
+        );
+
+    const mixElement =
+        document.getElementById(
+            "reverbMix"
+        );
+
+    const durationValueElement =
+        document.getElementById(
+            "reverbDurationValue"
+        );
+
+    const decayValueElement =
+        document.getElementById(
+            "reverbDecayValue"
+        );
+
+    const mixValueElement =
+        document.getElementById(
+            "reverbMixValue"
+        );
+
+    const settings =
+        state.processingSettings.reverb;
+
+    enabledElement.checked =
+        settings.enabled;
+
+    durationElement.disabled =
+        !settings.enabled;
+
+    decayElement.disabled =
+        !settings.enabled;
+
+    mixElement.disabled =
+        !settings.enabled;
+
+    durationElement.value =
+        String(settings.duration);
+
+    decayElement.value =
+        String(settings.decay);
+
+    mixElement.value =
+        String(settings.mix);
+
+    durationValueElement.textContent =
+        `${settings.duration.toFixed(2)} s`;
+
+    decayValueElement.textContent =
+        settings.decay.toFixed(1);
 
     mixValueElement.textContent =
         `${Math.round(

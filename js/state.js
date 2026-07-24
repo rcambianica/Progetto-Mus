@@ -79,6 +79,13 @@ export const state = {
             time: 0.25,
             feedback: 0.3,
             mix: 0.25
+        },
+
+        reverb: {
+            enabled: false,
+            duration: 2,
+            decay: 2,
+            mix: 0.25
         }
     }
 };

@@ -33,6 +33,11 @@ import {
     createChorusEffect
 } from "../processing/ChorusProcessor.js";
 
+import {
+    calculateReverbTailSeconds,
+    createReverbEffect
+} from "../processing/ReverbProcessor.js";
+
 export async function renderProcessedAudio(
     originalBuffer,
     settings
@@ -43,7 +48,7 @@ export async function renderProcessedAudio(
 
     /*
      * Primo passaggio:
-     * gain, EQ, compressione, distorsione, chorus e delay.
+     * gain, EQ, compressione, distorsione, chorus, delay e reverb.
      */
     let processedBuffer =
         await renderBaseProcessingChain(
@@ -119,9 +124,17 @@ async function renderBaseProcessingChain(
             )
             : 0;
 
+    const reverbTailSeconds =
+        settings.reverb?.enabled
+            ? calculateReverbTailSeconds(
+                settings.reverb
+            )
+            : 0;
+
     const additionalDurationSeconds =
         chorusTailSeconds +
-        delayTailSeconds;
+        delayTailSeconds +
+        reverbTailSeconds;
 
     const offlineContext =
         createOfflineContext(
@@ -220,6 +233,21 @@ async function renderBaseProcessingChain(
 
         currentNode =
             delayEffect.output;
+    }
+
+    if (settings.reverb?.enabled) {
+        const reverbEffect =
+            createReverbEffect(
+                offlineContext,
+                settings.reverb
+            );
+
+        currentNode.connect(
+            reverbEffect.input
+        );
+
+        currentNode =
+            reverbEffect.output;
     }
 
     currentNode.connect(

@@ -635,14 +635,82 @@
                             </div>
                         </section>
 
-                        <!-- Future Reverb -->
-                        <section class="processing-module processing-module--placeholder" aria-disabled="true">
-                            <div class="placeholder-effect">
-                                <span class="placeholder-effect__badge">Planned</span>
-                                <p class="module-order">7. Spatial effect</p>
-                                <h4>Reverb</h4>
-                                <p>Reserved for a ConvolverNode with generated impulse response and dry/wet mix.</p>
+                        <!-- Reverb -->
+                        <section
+                            class="processing-module processing-module--toggleable"
+                            data-toggle-input="reverbEnabled"
+                            tabindex="0"
+                            aria-pressed="false"
+                        >
+                            <input
+                                class="module-toggle-input"
+                                type="checkbox"
+                                id="reverbEnabled"
+                                tabindex="-1"
+                                aria-hidden="true"
+                            >
+
+                            <div class="module-heading">
+                                <div>
+                                    <p class="module-order">7. Spatial effect</p>
+                                    <h4>Reverb</h4>
+                                </div>
+                                <span class="module-status" data-module-status>Off</span>
                             </div>
+
+                            <div class="horizontal-controls-grid horizontal-controls-grid--stacked">
+                                <div class="horizontal-control">
+                                    <label for="reverbDuration">
+                                        Duration
+                                        <span id="reverbDurationValue">2.00 s</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        id="reverbDuration"
+                                        min="0.2"
+                                        max="6"
+                                        value="2"
+                                        step="0.1"
+                                        disabled
+                                    >
+                                </div>
+
+                                <div class="horizontal-control">
+                                    <label for="reverbDecay">
+                                        Decay
+                                        <span id="reverbDecayValue">2.0</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        id="reverbDecay"
+                                        min="0.5"
+                                        max="6"
+                                        value="2"
+                                        step="0.1"
+                                        disabled
+                                    >
+                                </div>
+
+                                <div class="horizontal-control">
+                                    <label for="reverbMix">
+                                        Wet mix
+                                        <span id="reverbMixValue">25%</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        id="reverbMix"
+                                        min="0"
+                                        max="1"
+                                        value="0.25"
+                                        step="0.01"
+                                        disabled
+                                    >
+                                </div>
+                            </div>
+
+                            <p class="effect-note">
+                                ConvolverNode with a procedurally generated impulse response.
+                            </p>
                         </section>
                     </div>
                 </section>
