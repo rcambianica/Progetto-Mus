@@ -126,6 +126,7 @@ function initializeApp() {
     bindPlaybackControls(tracks.original);
     bindPlaybackControls(tracks.processed);
     bindProcessingControls();
+    bindProcessingModuleToggles();
     bindMicrophoneRecordingControls();
     bindExportControls();
 
@@ -346,6 +347,21 @@ function bindProcessingControls() {
             "eqEnabled"
         );
 
+    const eqLowGain =
+        document.getElementById(
+            "eqLowGain"
+        );
+
+    const eqMidGain =
+        document.getElementById(
+            "eqMidGain"
+        );
+
+    const eqHighGain =
+        document.getElementById(
+            "eqHighGain"
+        );
+
     const eqGainControls = [
         {
             element: eqLowGain,
@@ -387,6 +403,21 @@ function bindProcessingControls() {
     const delayEnabled =
         document.getElementById(
             "delayEnabled"
+        );
+
+    const delayTime =
+        document.getElementById(
+            "delayTime"
+        );
+
+    const delayFeedback =
+        document.getElementById(
+            "delayFeedback"
+        );
+
+    const delayMix =
+        document.getElementById(
+            "delayMix"
         );
 
     const delayControls = [
@@ -694,6 +725,129 @@ function bindProcessingControls() {
             markProcessingAsChanged();
         }
     );
+}
+
+
+function bindProcessingModuleToggles() {
+    const modules =
+        document.querySelectorAll(
+            "[data-toggle-input]"
+        );
+
+    for (const moduleElement of modules) {
+        const inputElement =
+            document.getElementById(
+                moduleElement.dataset.toggleInput
+            );
+
+        if (!inputElement) {
+            console.warn(
+                `Processing toggle not found: ${moduleElement.dataset.toggleInput}`
+            );
+            continue;
+        }
+
+        moduleElement.addEventListener(
+            "click",
+            event => {
+                if (
+                    isInteractiveProcessingTarget(
+                        event.target
+                    )
+                ) {
+                    return;
+                }
+
+                toggleProcessingModule(
+                    inputElement
+                );
+            }
+        );
+
+        moduleElement.addEventListener(
+            "keydown",
+            event => {
+                if (
+                    event.target !== moduleElement ||
+                    ![
+                        "Enter",
+                        " "
+                    ].includes(event.key)
+                ) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                toggleProcessingModule(
+                    inputElement
+                );
+            }
+        );
+    }
+}
+
+function toggleProcessingModule(inputElement) {
+    inputElement.checked =
+        !inputElement.checked;
+
+    inputElement.dispatchEvent(
+        new Event(
+            "change",
+            {
+                bubbles: true
+            }
+        )
+    );
+}
+
+function isInteractiveProcessingTarget(target) {
+    return Boolean(
+        target.closest(
+            "input, select, button, a, label, [data-knob-for]"
+        )
+    );
+}
+
+function renderProcessingModuleStates() {
+    const modules =
+        document.querySelectorAll(
+            "[data-toggle-input]"
+        );
+
+    for (const moduleElement of modules) {
+        const inputElement =
+            document.getElementById(
+                moduleElement.dataset.toggleInput
+            );
+
+        if (!inputElement) {
+            continue;
+        }
+
+        const enabled =
+            inputElement.checked;
+
+        moduleElement.classList.toggle(
+            "is-enabled",
+            enabled
+        );
+
+        moduleElement.setAttribute(
+            "aria-pressed",
+            String(enabled)
+        );
+
+        const statusElement =
+            moduleElement.querySelector(
+                "[data-module-status]"
+            );
+
+        if (statusElement) {
+            statusElement.textContent =
+                enabled ? "On" : "Off";
+        }
+    }
 }
 
 function bindMicrophoneRecordingControls() {
@@ -1118,16 +1272,14 @@ function render(currentState) {
 
     updatePlaybackUI(tracks.original);
     updatePlaybackUI(tracks.processed);
-    
+
+    renderProcessingModuleStates();
     refreshAllRotaryKnobs();
 }
 
 function renderOriginalAudioInfo(currentState) {
     const fileNameElement =
         document.getElementById("originalFileName");
-
-    const durationElement =
-        document.getElementById("originalDuration");
 
     const sampleRateElement =
         document.getElementById("originalSampleRate");
@@ -1143,7 +1295,6 @@ function renderOriginalAudioInfo(currentState) {
 
     if (!currentState.originalBuffer) {
         fileNameElement.textContent = "-";
-        durationElement.textContent = "-";
         sampleRateElement.textContent = "-";
         channelsElement.textContent = "-";
         peakElement.textContent = "-";
@@ -1153,9 +1304,6 @@ function renderOriginalAudioInfo(currentState) {
 
     fileNameElement.textContent =
         currentState.originalFile?.name ?? "-";
-
-    durationElement.textContent =
-        formatDuration(currentState.originalInfo.durationMs);
 
     sampleRateElement.textContent =
         `${currentState.originalInfo.sampleRate} Hz`;
@@ -1171,8 +1319,6 @@ function renderOriginalAudioInfo(currentState) {
 }
 
 function renderProcessedAudioInfo(currentState) {
-    const durationElement =
-        document.getElementById("processedDuration");
 
     const sampleRateElement =
         document.getElementById("processedSampleRate");
@@ -1187,16 +1333,12 @@ function renderProcessedAudioInfo(currentState) {
         document.getElementById("processedPeakDb");
 
     if (!currentState.processedBuffer) {
-        durationElement.textContent = "-";
         sampleRateElement.textContent = "-";
         channelsElement.textContent = "-";
         peakElement.textContent = "-";
         peakDbElement.textContent = "-";
         return;
     }
-
-    durationElement.textContent =
-        formatDuration(currentState.processedInfo.durationMs);
 
     sampleRateElement.textContent =
         `${currentState.processedInfo.sampleRate} Hz`;
@@ -1389,14 +1531,13 @@ function renderProcessingStatus(status) {
     statusElement.textContent = status;
 }
 
-function renderRecordingStatus(status) {
+function renderRecordingStatus() {
     const statusElement =
         document.getElementById("recordingStatus");
 
     const mimeTypeElement =
         document.getElementById("recordingMimeType");
 
-    statusElement.textContent = status;
 
     if (microphoneRecorder) {
         mimeTypeElement.textContent =

@@ -13,525 +13,482 @@
 <body>
 
     <header class="app-header">
-        <h1>Audio Processing and Mastering</h1>
+        <div class="app-header__content">
+            <p class="app-kicker">Web Audio API project</p>
+            <h1>Audio Processing and Mastering</h1>
+            <p class="app-subtitle">
+                Load or record audio, build an offline processing chain and compare the original signal with the result.
+            </p>
+        </div>
     </header>
 
     <main class="app-layout">
 
-        <!-- INPUT MODULES -->
+        <!-- AUDIO INPUT -->
         <section class="panel">
-            <h2>Audio Input</h2>
+            <div class="panel-heading">
+                <div>
+                    <p class="section-kicker">Step 1</p>
+                    <h2>Audio Input</h2>
+                </div>
+                <p>Choose an existing audio file or create a new recording with the microphone.</p>
+            </div>
 
             <div class="input-grid">
-
-                <div class="input-card">
+                <section class="input-card">
                     <h3>Upload Audio File</h3>
 
-                    <label for="audioFileInput">
-                        Upload audio file
-                    </label>
-
+                    <label for="audioFileInput">Select WAV, MP3 or OGG</label>
                     <input type="file" id="audioFileInput" accept="audio/wav,audio/mpeg,audio/ogg,audio/*">
 
-                    <p>
+                    <p class="input-summary">
                         File:
                         <span id="originalFileName">-</span>
                     </p>
-                </div>
+                </section>
 
-                <div class="input-card">
+                <section class="input-card">
                     <h3>Microphone Recording</h3>
 
                     <div class="playback-controls">
-                        <button id="startRecordingBtn">
-                            Start Recording
-                        </button>
-
-                        <button id="stopRecordingBtn" disabled>
-                            Stop Recording
-                        </button>
+                        <button id="startRecordingBtn">Start Recording</button>
+                        <button id="stopRecordingBtn" disabled>Stop Recording</button>
                     </div>
 
-                    <p>
-                        Status:
-                        <span id="recordingStatus">inactive</span>
-                    </p>
-
-                    <p>
-                        Recording time:
-                        <span id="recordingTime">0:00.000</span>
-                    </p>
-
-                    <p>
-                        MIME type:
-                        <span id="recordingMimeType">-</span>
-                    </p>
-                </div>
-
+                    <div class="recording-details">
+                        <p>
+                            Status:
+                            <span id="recordingStatus">inactive</span>
+                        </p>
+                        <p>
+                            Recording time:
+                            <span id="recordingTime">0:00.000</span>
+                        </p>
+                        <p>
+                            MIME type:
+                            <span id="recordingMimeType">-</span>
+                        </p>
+                    </div>
+                </section>
             </div>
         </section>
 
         <!-- WAVEFORM COMPARISON -->
         <section class="panel waveform-comparison-panel">
-            <h2>Waveform Comparison</h2>
+            <div class="panel-heading">
+                <div>
+                    <p class="section-kicker">Step 2</p>
+                    <h2>Waveform Comparison</h2>
+                </div>
+                <p>Use the two independent players to compare the source with the rendered processing result.</p>
+            </div>
 
             <div class="waveform-comparison">
+                <section class="waveform-card">
+                    <div class="waveform-card__heading">
+                        <h3>Original Audio</h3>
+                        <span class="signal-badge">Source</span>
+                    </div>
 
-                <div class="waveform-card">
-                    <h3>Original Audio</h3>
-
-                    <!-- WaveSurfer.js container -->
                     <div id="originalWaveform"></div>
 
-                    <p>
-                        Duration:
-                        <span id="originalDuration">-</span>
-                    </p>
-
-                    <p>
-                        Sample rate:
-                        <span id="originalSampleRate">-</span>
-                    </p>
-
-                    <p>
-                        Channels:
-                        <span id="originalChannels">-</span>
-                    </p>
-
-                    <p>
-                        Peak:
-                        <span id="originalPeak">-</span>
-                    </p>
-
-                    <p>
-                        Peak dBFS:
-                        <span id="originalPeakDb">-</span>
-                    </p>
-
-                    <div class="playback-controls">
-                        <button id="originalPlayBtn">
-                            Play
-                        </button>
-
-                        <button id="originalPauseBtn">
-                            Pause
-                        </button>
-
-                        <button id="originalStopBtn">
-                            Stop
-                        </button>
+                    <div class="audio-metrics">
+                        <p><span class="metric-label">Sample rate</span><span id="originalSampleRate">-</span></p>
+                        <p><span class="metric-label">Channels</span><span id="originalChannels">-</span></p>
+                        <p><span class="metric-label">Peak</span><span id="originalPeak">-</span></p>
+                        <p><span class="metric-label">Peak dBFS</span><span id="originalPeakDb">-</span></p>
                     </div>
 
-                    <label for="originalSeekSlider">
-                        Seek
-                    </label>
+                    <div class="playback-controls">
+                        <button id="originalPlayBtn">Play</button>
+                        <button id="originalPauseBtn">Pause</button>
+                        <button id="originalStopBtn">Stop</button>
+                    </div>
 
+                    <label class="visually-hidden" for="originalSeekSlider">Seek original audio</label>
                     <input type="range" id="originalSeekSlider" min="0" max="1000" value="0" step="1">
 
-                    <p>
-                        Time:
+                    <p class="time-display">
                         <span id="originalCurrentTime">0:00.000</span>
-                        /
+                        <span>/</span>
                         <span id="originalTotalTime">0:00.000</span>
                     </p>
-                </div>
+                </section>
 
-                <div class="waveform-card">
-                    <h3>Processed Audio</h3>
+                <section class="waveform-card">
+                    <div class="waveform-card__heading">
+                        <h3>Processed Audio</h3>
+                        <span class="signal-badge signal-badge--processed">Rendered</span>
+                    </div>
 
-                    <!-- WaveSurfer.js container -->
                     <div id="processedWaveform"></div>
 
-                    <p>
-                        Duration:
-                        <span id="processedDuration">-</span>
-                    </p>
-
-                    <p>
-                        Sample rate:
-                        <span id="processedSampleRate">-</span>
-                    </p>
-
-                    <p>
-                        Channels:
-                        <span id="processedChannels">-</span>
-                    </p>
-
-                    <p>
-                        Peak:
-                        <span id="processedPeak">-</span>
-                    </p>
-
-                    <p>
-                        Peak dBFS:
-                        <span id="processedPeakDb">-</span>
-                    </p>
+                    <div class="audio-metrics">
+                        <p><span class="metric-label">Sample rate</span><span id="processedSampleRate">-</span></p>
+                        <p><span class="metric-label">Channels</span><span id="processedChannels">-</span></p>
+                        <p><span class="metric-label">Peak</span><span id="processedPeak">-</span></p>
+                        <p><span class="metric-label">Peak dBFS</span><span id="processedPeakDb">-</span></p>
+                    </div>
 
                     <div class="playback-controls">
-                        <button id="processedPlayBtn">
-                            Play
-                        </button>
-
-                        <button id="processedPauseBtn">
-                            Pause
-                        </button>
-
-                        <button id="processedStopBtn">
-                            Stop
-                        </button>
+                        <button id="processedPlayBtn">Play</button>
+                        <button id="processedPauseBtn">Pause</button>
+                        <button id="processedStopBtn">Stop</button>
                     </div>
 
-                    <label for="processedSeekSlider">
-                        Seek
-                    </label>
-
+                    <label class="visually-hidden" for="processedSeekSlider">Seek processed audio</label>
                     <input type="range" id="processedSeekSlider" min="0" max="1000" value="0" step="1">
 
-                    <p>
-                        Time:
+                    <p class="time-display">
                         <span id="processedCurrentTime">0:00.000</span>
-                        /
+                        <span>/</span>
                         <span id="processedTotalTime">0:00.000</span>
                     </p>
-                </div>
-
+                </section>
             </div>
         </section>
 
-        <!-- PROCESSING MODULES -->
+        <!-- AUDIO PROCESSING -->
         <section class="panel processing-panel">
-            <h2>Audio Processing</h2>
-
-            <div class="processing-stack">
-
-                <!-- GAIN + EQ -->
-                <div class="processing-row processing-row--tone">
-
-                    <section class="processing-module processing-module--knob">
-                        <h3>Gain Control</h3>
-
-                        <div class="rotary-control">
-                            <label class="visually-hidden" for="gainSlider">
-                                Gain
-                            </label>
-
-                            <input class="knob-native-input" type="range" id="gainSlider" min="0" max="4" value="1"
-                                step="0.01">
-
-                            <div class="rotary-knob" data-knob-for="gainSlider" data-default="1" data-unit="×"
-                                role="slider" tabindex="0" aria-label="Gain">
-                                <span class="rotary-knob__indicator"></span>
-                            </div>
-
-                            <div class="knob-scale">
-                                <span>0</span>
-                                <span>4</span>
-                            </div>
-
-                            <p class="control-value">
-                                <span id="gainValue">1.00</span>×
-                            </p>
-
-                            <small>
-                                Drag vertically or use arrow keys
-                            </small>
-                        </div>
-                    </section>
-
-                    <section class="processing-module eq-module">
-                        <div class="module-heading">
-                            <h3>Three-Band Equalizer</h3>
-
-                            <label class="checkbox-label">
-                                <input type="checkbox" id="eqEnabled">
-                                Enable equalizer
-                            </label>
-                        </div>
-
-                        <div class="eq-controls">
-
-                            <div class="eq-band">
-                                <span class="eq-band__value" id="eqLowGainValue">
-                                    0.0 dB
-                                </span>
-
-                                <div class="vertical-slider-shell">
-                                    <input class="vertical-range" type="range" id="eqLowGain" min="-12" max="12"
-                                        value="0" step="0.5" orient="vertical" disabled>
-                                </div>
-
-                                <label for="eqLowGain">
-                                    Low
-                                </label>
-
-                                <small>250 Hz</small>
-                            </div>
-
-                            <div class="eq-band">
-                                <span class="eq-band__value" id="eqMidGainValue">
-                                    0.0 dB
-                                </span>
-
-                                <div class="vertical-slider-shell">
-                                    <input class="vertical-range" type="range" id="eqMidGain" min="-12" max="12"
-                                        value="0" step="0.5" orient="vertical" disabled>
-                                </div>
-
-                                <label for="eqMidGain">
-                                    Mid
-                                </label>
-
-                                <small>1000 Hz</small>
-                            </div>
-
-                            <div class="eq-band">
-                                <span class="eq-band__value" id="eqHighGainValue">
-                                    0.0 dB
-                                </span>
-
-                                <div class="vertical-slider-shell">
-                                    <input class="vertical-range" type="range" id="eqHighGain" min="-12" max="12"
-                                        value="0" step="0.5" orient="vertical" disabled>
-                                </div>
-
-                                <label for="eqHighGain">
-                                    High
-                                </label>
-
-                                <small>5000 Hz</small>
-                            </div>
-
-                        </div>
-                    </section>
-
+            <div class="panel-heading panel-heading--processing">
+                <div>
+                    <p class="section-kicker">Step 3</p>
+                    <h2>Audio Processing</h2>
                 </div>
+                <p>
+                    Follow the signal flow from left to right and from top to bottom. Click a processing card to enable
+                    or disable it; controls inside enabled cards remain independently interactive.
+                </p>
+            </div>
 
-                <!-- COMPRESSOR -->
-                <section class="processing-module">
-                    <div class="module-heading">
-                        <h3>Dynamic Range Compression</h3>
+            <div class="signal-flow">
+                <span>Tone &amp; Dynamics</span>
+                <span>→</span>
+                <span>Creative Effects</span>
+                <span>→</span>
+                <span>Finalization</span>
+            </div>
 
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="compressorEnabled">
-                            Enable compressor
-                        </label>
+            <div class="processing-stages">
+
+                <!-- STAGE 1: TONE AND DYNAMICS -->
+                <section class="processing-stage">
+                    <div class="processing-stage__heading">
+                        <div>
+                            <span class="stage-number">01</span>
+                            <h3 id="toneDynamicsTitle">Tone &amp; Dynamics</h3>
+                        </div>
+                        <p>Set the input level, shape the frequency balance and control dynamic range.</p>
                     </div>
 
-                    <div class="horizontal-controls-grid">
+                    <div class="processing-grid processing-grid--three">
+                        <!-- Input Gain -->
+                        <section class="processing-module processing-module--knob">
+                            <div class="module-heading">
+                                <div>
+                                    <p class="module-order">1. Input stage</p>
+                                    <h4>Input Gain</h4>
+                                </div>
+                                <span class="module-status module-status--fixed">Always on</span>
+                            </div>
 
-                        <div class="horizontal-control">
-                            <label for="compressorThreshold">
-                                Threshold
-                                <span id="compressorThresholdValue">
-                                    -24 dB
-                                </span>
-                            </label>
+                            <div class="rotary-control">
+                                <label class="visually-hidden" for="gainSlider">Input gain</label>
+                                <input class="knob-native-input" type="range" id="gainSlider" min="0" max="4" value="1"
+                                    step="0.01">
+                                <div class="rotary-knob" data-knob-for="gainSlider" data-default="1" data-unit="x"
+                                    role="slider" tabindex="0" aria-valuenow="1">
+                                    <span class="rotary-knob__indicator"></span>
+                                </div>
+                                <div class="knob-scale"><span>0</span><span>4</span></div>
+                                <p class="control-value"><span id="gainValue">1.00</span>x</p>
+                                <small>Drag vertically or use arrow keys</small>
+                            </div>
+                        </section>
 
-                            <input type="range" id="compressorThreshold" min="-100" max="0" value="-24" step="1"
-                                disabled>
-                        </div>
+                        <!-- Three-Band Equalizer -->
+                        <section class="processing-module processing-module--toggleable eq-module"
+                            data-toggle-input="eqEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="eqEnabled" tabindex="-1">
 
-                        <div class="horizontal-control">
-                            <label for="compressorRatio">
-                                Ratio
-                                <span id="compressorRatioValue">
-                                    4.0:1
-                                </span>
-                            </label>
+                            <div class="module-heading">
+                                <div>
+                                    <p class="module-order">2. Tone shaping</p>
+                                    <h4>Three-Band Equalizer</h4>
+                                </div>
+                                <span class="module-status" data-module-status>Off</span>
+                            </div>
 
-                            <input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.1" disabled>
-                        </div>
+                            <div class="eq-controls">
+                                <div class="eq-band">
+                                    <span class="eq-band__value" id="eqLowGainValue">0.0 dB</span>
+                                    <div class="vertical-slider-shell">
+                                        <input class="vertical-range" type="range" id="eqLowGain" min="-12" max="12"
+                                            value="0" step="0.5" disabled>
+                                    </div>
+                                    <label for="eqLowGain">Low</label>
+                                    <small>250 Hz</small>
+                                </div>
 
-                        <div class="horizontal-control">
-                            <label for="compressorAttack">
-                                Attack
-                                <span id="compressorAttackValue">
-                                    0.003 s
-                                </span>
-                            </label>
+                                <div class="eq-band">
+                                    <span class="eq-band__value" id="eqMidGainValue">0.0 dB</span>
+                                    <div class="vertical-slider-shell">
+                                        <input class="vertical-range" type="range" id="eqMidGain" min="-12" max="12"
+                                            value="0" step="0.5" disabled>
+                                    </div>
+                                    <label for="eqMidGain">Mid</label>
+                                    <small>1000 Hz</small>
+                                </div>
 
-                            <input type="range" id="compressorAttack" min="0" max="1" value="0.003" step="0.001"
-                                disabled>
-                        </div>
+                                <div class="eq-band">
+                                    <span class="eq-band__value" id="eqHighGainValue">0.0 dB</span>
+                                    <div class="vertical-slider-shell">
+                                        <input class="vertical-range" type="range" id="eqHighGain" min="-12" max="12"
+                                            value="0" step="0.5" disabled>
+                                    </div>
+                                    <label for="eqHighGain">High</label>
+                                    <small>5000 Hz</small>
+                                </div>
+                            </div>
+                        </section>
 
-                        <div class="horizontal-control">
-                            <label for="compressorRelease">
-                                Release
-                                <span id="compressorReleaseValue">
-                                    0.250 s
-                                </span>
-                            </label>
+                        <!-- Dynamic Range Compressor -->
+                        <section class="processing-module processing-module--toggleable"
+                            data-toggle-input="compressorEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="compressorEnabled" tabindex="-1">
 
-                            <input type="range" id="compressorRelease" min="0" max="1" value="0.25" step="0.01"
-                                disabled>
-                        </div>
+                            <div class="module-heading">
+                                <div>
+                                    <p class="module-order">3. Dynamic control</p>
+                                    <h4>Dynamic Range Compressor</h4>
+                                </div>
+                                <span class="module-status" data-module-status>Off</span>
+                            </div>
 
+                            <div class="horizontal-controls-grid horizontal-controls-grid--stacked">
+                                <div class="horizontal-control">
+                                    <label for="compressorThreshold">
+                                        Threshold
+                                        <span id="compressorThresholdValue">-24 dB</span>
+                                    </label>
+                                    <input type="range" id="compressorThreshold" min="-100" max="0" value="-24" step="1"
+                                        disabled>
+                                </div>
+
+                                <div class="horizontal-control">
+                                    <label for="compressorRatio">
+                                        Ratio
+                                        <span id="compressorRatioValue">4.0:1</span>
+                                    </label>
+                                    <input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.1"
+                                        disabled>
+                                </div>
+
+                                <div class="horizontal-control">
+                                    <label for="compressorAttack">
+                                        Attack
+                                        <span id="compressorAttackValue">0.003 s</span>
+                                    </label>
+                                    <input type="range" id="compressorAttack" min="0" max="1" value="0.003" step="0.001"
+                                        disabled>
+                                </div>
+
+                                <div class="horizontal-control">
+                                    <label for="compressorRelease">
+                                        Release
+                                        <span id="compressorReleaseValue">0.250 s</span>
+                                    </label>
+                                    <input type="range" id="compressorRelease" min="0" max="1" value="0.25" step="0.01"
+                                        disabled>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </section>
 
-                <!-- DELAY -->
-                <section class="processing-module">
-                    <div class="module-heading">
-                        <h3>Delay / Echo</h3>
-
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="delayEnabled">
-                            Enable delay
-                        </label>
+                <!-- STAGE 2: CREATIVE EFFECTS -->
+                <section class="processing-stage">
+                    <div class="processing-stage__heading">
+                        <div>
+                            <span class="stage-number">02</span>
+                            <h3 id="creativeEffectsTitle">Creative Effects</h3>
+                        </div>
+                        <p>Apply nonlinear, modulation, time-based and spatial processing before finalization.</p>
                     </div>
 
-                    <div class="horizontal-controls-grid horizontal-controls-grid--three">
+                    <div class="processing-grid processing-grid--four">
+                        <!-- Future Distortion -->
+                        <section class="processing-module processing-module--placeholder">
+                            <div class="placeholder-effect">
+                                <span class="placeholder-effect__badge">Planned</span>
+                                <p class="module-order">4. Nonlinear processing</p>
+                                <h4>Distortion / Saturation</h4>
+                                <p>Reserved for a future WaveShaper-based drive and dry/wet control.</p>
+                            </div>
+                        </section>
 
-                        <div class="horizontal-control">
-                            <label for="delayTime">
-                                Delay time
-                                <span id="delayTimeValue">
-                                    0.250 s
-                                </span>
-                            </label>
+                        <!-- Future Chorus -->
+                        <section class="processing-module processing-module--placeholder">
+                            <div class="placeholder-effect">
+                                <span class="placeholder-effect__badge">Planned</span>
+                                <p class="module-order">5. Modulation</p>
+                                <h4>Chorus</h4>
+                                <p>Reserved for a short modulated delay with rate, depth and mix controls.</p>
+                            </div>
+                        </section>
 
-                            <input type="range" id="delayTime" min="0" max="2" value="0.25" step="0.01" disabled>
-                        </div>
+                        <!-- Delay / Echo -->
+                        <section class="processing-module processing-module--toggleable"
+                            data-toggle-input="delayEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="delayEnabled" tabindex="-1">
 
-                        <div class="horizontal-control">
-                            <label for="delayFeedback">
-                                Feedback
-                                <span id="delayFeedbackValue">
-                                    30%
-                                </span>
-                            </label>
+                            <div class="module-heading">
+                                <div>
+                                    <p class="module-order">6. Time-based effect</p>
+                                    <h4>Delay / Echo</h4>
+                                </div>
+                                <span class="module-status" data-module-status>Off</span>
+                            </div>
 
-                            <input type="range" id="delayFeedback" min="0" max="0.9" value="0.3" step="0.01" disabled>
-                        </div>
+                            <div class="horizontal-controls-grid horizontal-controls-grid--stacked">
+                                <div class="horizontal-control">
+                                    <label for="delayTime">
+                                        Delay time
+                                        <span id="delayTimeValue">0.250 s</span>
+                                    </label>
+                                    <input type="range" id="delayTime" min="0" max="2" value="0.25" step="0.01"
+                                        disabled>
+                                </div>
 
-                        <div class="horizontal-control">
-                            <label for="delayMix">
-                                Wet mix
-                                <span id="delayMixValue">
-                                    25%
-                                </span>
-                            </label>
+                                <div class="horizontal-control">
+                                    <label for="delayFeedback">
+                                        Feedback
+                                        <span id="delayFeedbackValue">30%</span>
+                                    </label>
+                                    <input type="range" id="delayFeedback" min="0" max="0.9" value="0.3" step="0.01"
+                                        disabled>
+                                </div>
 
-                            <input type="range" id="delayMix" min="0" max="1" value="0.25" step="0.01" disabled>
-                        </div>
+                                <div class="horizontal-control">
+                                    <label for="delayMix">
+                                        Wet mix
+                                        <span id="delayMixValue">25%</span>
+                                    </label>
+                                    <input type="range" id="delayMix" min="0" max="1" value="0.25" step="0.01" disabled>
+                                </div>
+                            </div>
+                        </section>
 
+                        <!-- Future Reverb -->
+                        <section class="processing-module processing-module--placeholder">
+                            <div class="placeholder-effect">
+                                <span class="placeholder-effect__badge">Planned</span>
+                                <p class="module-order">7. Spatial effect</p>
+                                <h4>Reverb</h4>
+                                <p>Reserved for a ConvolverNode with generated impulse response and dry/wet mix.</p>
+                            </div>
+                        </section>
                     </div>
                 </section>
 
-                <!-- NORMALIZATION + LIMITER -->
-                <div class="processing-row processing-row--output">
-
-                    <section class="processing-module">
-                        <h3>Peak Normalization</h3>
-
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="normalizationEnabled">
-                            Enable normalization
-                        </label>
-
-                        <div class="normalization-control">
-                            <label for="normalizationTarget">
-                                Target peak
-                            </label>
-
-                            <select id="normalizationTarget" disabled>
-                                <option value="0">
-                                    0 dBFS
-                                </option>
-
-                                <option value="-1" selected>
-                                    -1 dBFS
-                                </option>
-
-                                <option value="-3">
-                                    -3 dBFS
-                                </option>
-                            </select>
-
-                            <p class="control-value">
-                                <span id="normalizationTargetValue">
-                                    -1.00 dBFS
-                                </span>
-                            </p>
+                <!-- STAGE 3: FINALIZATION -->
+                <section class="processing-stage processing-stage--final">
+                    <div class="processing-stage__heading">
+                        <div>
+                            <span class="stage-number">03</span>
+                            <h3 id="finalizationTitle">Finalization</h3>
                         </div>
-                    </section>
+                        <p>Set the final peak level, then enforce the sample-peak ceiling before export.</p>
+                    </div>
 
-                    <section class="processing-module processing-module--knob">
-                        <h3>Limiter</h3>
+                    <div class="processing-grid processing-grid--two processing-grid--centered">
+                        <!-- Peak Normalization -->
+                        <section class="processing-module processing-module--toggleable processing-module--final"
+                            data-toggle-input="normalizationEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="normalizationEnabled" tabindex="-1">
 
-                        <label class="checkbox-label">
-                            <input type="checkbox" id="limiterEnabled">
-                            Enable limiter
-                        </label>
-
-                        <div class="rotary-control">
-                            <label class="visually-hidden" for="limiterThreshold">
-                                Limiter threshold
-                            </label>
-
-                            <input class="knob-native-input" type="range" id="limiterThreshold" min="-20" max="0"
-                                value="-1" step="0.1" disabled>
-
-                            <div class="rotary-knob" data-knob-for="limiterThreshold" data-default="-1"
-                                data-unit=" dBFS" role="slider" tabindex="-1" aria-label="Limiter threshold">
-                                <span class="rotary-knob__indicator"></span>
+                            <div class="module-heading">
+                                <div>
+                                    <p class="module-order">8. Target level</p>
+                                    <h4>Peak Normalization</h4>
+                                </div>
+                                <span class="module-status" data-module-status>Off</span>
                             </div>
 
-                            <div class="knob-scale">
-                                <span>-20</span>
-                                <span>0</span>
+                            <div class="normalization-control">
+                                <label for="normalizationTarget">Target peak</label>
+                                <select id="normalizationTarget" disabled>
+                                    <option value="0">0 dBFS</option>
+                                    <option value="-1" selected>-1 dBFS</option>
+                                    <option value="-3">-3 dBFS</option>
+                                </select>
+                                <p class="control-value">
+                                    <span id="normalizationTargetValue">-1.00 dBFS</span>
+                                </p>
+                            </div>
+                        </section>
+
+                        <!-- Limiter -->
+                        <section
+                            class="processing-module processing-module--toggleable processing-module--knob processing-module--final"
+                            data-toggle-input="limiterEnabled" tabindex="0" >
+                            <input class="module-toggle-input" type="checkbox" id="limiterEnabled" tabindex="-1">
+
+                            <div class="module-heading">
+                                <div>
+                                    <p class="module-order">9. Final ceiling</p>
+                                    <h4>Limiter</h4>
+                                </div>
+                                <span class="module-status" data-module-status>Off</span>
                             </div>
 
-                            <p class="control-value">
-                                <span id="limiterThresholdValue">
-                                    -1.0 dBFS
-                                </span>
-                            </p>
+                            <div class="rotary-control rotary-control--compact">
+                                <label class="visually-hidden" for="limiterThreshold">Limiter threshold</label>
+                                <input class="knob-native-input" type="range" id="limiterThreshold" min="-20" max="0"
+                                    value="-1" step="0.1" disabled>
+                                <div class="rotary-knob" data-knob-for="limiterThreshold" data-default="-1"
+                                    data-unit=" dBFS" role="slider" tabindex="-1" aria-valuenow="1">
+                                    <span class="rotary-knob__indicator"></span>
+                                </div>
+                                <div class="knob-scale"><span>-20</span><span>0</span></div>
+                                <p class="control-value">
+                                    <span id="limiterThresholdValue">-1.0 dBFS</span>
+                                </p>
+                                <small>Sample-peak ceiling</small>
+                            </div>
+                        </section>
+                    </div>
+                </section>
+            </div>
 
-                            <small>
-                                Final sample-peak ceiling
-                            </small>
-                        </div>
-                    </section>
-
-                </div>
-
-                <div class="processing-actions">
-                    <button id="applyProcessingBtn" class="primary-button">
-                        Apply Processing
-                    </button>
-
-                    <p>
-                        Processing status:
-                        <span id="processingStatus">
-                            not processed
-                        </span>
-                    </p>
-                </div>
-
+            <div class="processing-actions">
+                <button id="applyProcessingBtn" class="primary-button">Apply Processing</button>
+                <p>
+                    Processing status:
+                    <span id="processingStatus">not processed</span>
+                </p>
             </div>
         </section>
 
-        <!-- DOWNLOAD MODULE -->
+        <!-- AUDIO EXPORT -->
         <section class="panel">
-            <h2>Audio Export</h2>
+            <div class="panel-heading">
+                <div>
+                    <p class="section-kicker">Step 4</p>
+                    <h2>Audio Export</h2>
+                </div>
+                <p>Encode the rendered buffer as a 16-bit PCM WAV file.</p>
+            </div>
 
             <div class="export-module">
-                <label for="exportFileName">
-                    File name
-                </label>
-
+                <label for="exportFileName">File name</label>
                 <input type="text" id="exportFileName" value="processed-audio" placeholder="processed-audio">
 
-                <button id="downloadWavBtn" disabled>
-                    Download processed WAV
-                </button>
+                <button id="downloadWavBtn" disabled>Download processed WAV</button>
 
                 <p>
                     Export status:
-                    <span id="exportStatus">
-                        no processed audio
-                    </span>
+                    <span id="exportStatus">no processed audio</span>
                 </p>
             </div>
         </section>
