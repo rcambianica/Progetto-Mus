@@ -36,11 +36,6 @@
     background: #f8fafc;
 }
 
-.processing-stage--final {
-    border-color: #bfdbfe;
-    background: linear-gradient(180deg, #f8fbff, #eff6ff);
-}
-
 .processing-stage__heading {
     display: flex;
     align-items: flex-end;
