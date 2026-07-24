@@ -400,6 +400,26 @@ function bindProcessingControls() {
         );
     }
 
+    const distortionEnabled =
+        document.getElementById(
+            "distortionEnabled"
+        );
+
+    const distortionDrive =
+        document.getElementById(
+            "distortionDrive"
+        );
+
+    const distortionMix =
+        document.getElementById(
+            "distortionMix"
+        );
+
+    const distortionOversample =
+        document.getElementById(
+            "distortionOversample"
+        );
+
     const delayEnabled =
         document.getElementById(
             "delayEnabled"
@@ -419,6 +439,74 @@ function bindProcessingControls() {
         document.getElementById(
             "delayMix"
         );
+
+    distortionEnabled.addEventListener(
+        "change",
+        () => {
+            updateProcessingSettings(
+                "distortion",
+                {
+                    enabled:
+                        distortionEnabled.checked
+                }
+            );
+
+            renderDistortionControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    distortionDrive.addEventListener(
+        "input",
+        () => {
+            updateProcessingSettings(
+                "distortion",
+                {
+                    drive:
+                        Number(
+                            distortionDrive.value
+                        )
+                }
+            );
+
+            renderDistortionControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    distortionMix.addEventListener(
+        "input",
+        () => {
+            updateProcessingSettings(
+                "distortion",
+                {
+                    mix:
+                        Number(
+                            distortionMix.value
+                        )
+                }
+            );
+
+            renderDistortionControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    distortionOversample.addEventListener(
+        "change",
+        () => {
+            updateProcessingSettings(
+                "distortion",
+                {
+                    oversample:
+                        distortionOversample.value
+                }
+            );
+
+            renderDistortionControls();
+            markProcessingAsChanged();
+        }
+    );
 
     const delayControls = [
         {
@@ -1265,6 +1353,7 @@ function render(currentState) {
     renderGainControls();
     renderEqControls();
     renderCompressorControls();
+    renderDistortionControls();
     renderDelayControls();
     renderNormalizationControls();
     renderLimiterControls();
@@ -1599,6 +1688,70 @@ function renderEqControls() {
                 control.value
             );
     }
+}
+
+function renderDistortionControls() {
+    const enabledElement =
+        document.getElementById(
+            "distortionEnabled"
+        );
+
+    const driveElement =
+        document.getElementById(
+            "distortionDrive"
+        );
+
+    const mixElement =
+        document.getElementById(
+            "distortionMix"
+        );
+
+    const oversampleElement =
+        document.getElementById(
+            "distortionOversample"
+        );
+
+    const driveValueElement =
+        document.getElementById(
+            "distortionDriveValue"
+        );
+
+    const mixValueElement =
+        document.getElementById(
+            "distortionMixValue"
+        );
+
+    const settings =
+        state.processingSettings.distortion;
+
+    enabledElement.checked =
+        settings.enabled;
+
+    driveElement.disabled =
+        !settings.enabled;
+
+    mixElement.disabled =
+        !settings.enabled;
+
+    oversampleElement.disabled =
+        !settings.enabled;
+
+    driveElement.value =
+        String(settings.drive);
+
+    mixElement.value =
+        String(settings.mix);
+
+    oversampleElement.value =
+        settings.oversample;
+
+    driveValueElement.textContent =
+        `${Math.round(settings.drive)}%`;
+
+    mixValueElement.textContent =
+        `${Math.round(
+            settings.mix * 100
+        )}%`;
 }
 
 function renderDelayControls() {

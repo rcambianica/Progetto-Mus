@@ -24,6 +24,10 @@ import {
     createDelayEffect
 } from "../processing/DelayProcessor.js";
 
+import {
+    createDistortionEffect
+} from "../processing/DistortionProcessor.js";
+
 export async function renderProcessedAudio(
     originalBuffer,
     settings
@@ -34,7 +38,7 @@ export async function renderProcessedAudio(
 
     /*
      * Primo passaggio:
-     * gain e compressione.
+     * gain, EQ, compressione, distorsione e delay.
      */
     let processedBuffer =
         await renderBaseProcessingChain(
@@ -45,7 +49,7 @@ export async function renderProcessedAudio(
     /*
      * Secondo passaggio:
      * normalizzazione rispetto al risultato
-     * di gain e compressione.
+     * dell'intera catena di processing creativo.
      */
     if (settings.normalization?.enabled) {
         const normalizationGain =
@@ -155,6 +159,21 @@ async function renderBaseProcessingChain(
 
         currentNode =
             compressorNode;
+    }
+
+    if (settings.distortion?.enabled) {
+        const distortionEffect =
+            createDistortionEffect(
+                offlineContext,
+                settings.distortion
+            );
+
+        currentNode.connect(
+            distortionEffect.input
+        );
+
+        currentNode =
+            distortionEffect.output;
     }
 
     if (settings.delay?.enabled) {

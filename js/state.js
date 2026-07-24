@@ -40,6 +40,13 @@ export const state = {
             release: 0.25
         },
 
+        distortion: {
+            enabled: false,
+            drive: 25,
+            mix: 0.35,
+            oversample: "4x"
+        },
+
         limiter: {
             enabled: false,
             threshold: -1
