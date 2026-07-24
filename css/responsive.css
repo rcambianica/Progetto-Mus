@@ -1,0 +1,115 @@
+/* Responsive overrides. Keep this file imported last. */
+
+@media (max-width: 1250px) {
+    .processing-grid--four {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1050px) {
+    .processing-grid--three {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .processing-grid--three .processing-module:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .audio-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 850px) {
+    .panel-heading,
+    .processing-stage__heading {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.55rem;
+    }
+
+    .panel-heading > p,
+    .processing-stage__heading p {
+        max-width: none;
+        text-align: left;
+    }
+
+    .input-grid,
+    .waveform-comparison,
+    .processing-grid--two {
+        grid-template-columns: 1fr;
+    }
+
+    .processing-grid--centered {
+        width: 100%;
+    }
+}
+
+@media (max-width: 680px) {
+    .app-header {
+        padding-block: 1.7rem;
+    }
+
+    .app-layout {
+        padding: 0.75rem;
+    }
+
+    .panel,
+    .processing-stage {
+        padding: 0.85rem;
+        border-radius: 14px;
+    }
+
+    .processing-grid--three,
+    .processing-grid--four {
+        grid-template-columns: 1fr;
+    }
+
+    .processing-grid--three .processing-module:last-child {
+        grid-column: auto;
+    }
+
+    .processing-module {
+        min-height: auto;
+    }
+
+    .processing-actions,
+    .export-module {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .processing-actions {
+        display: flex;
+    }
+
+    .processing-actions button,
+    .export-module button {
+        width: 100%;
+    }
+
+    .export-module label,
+    .export-module p {
+        grid-column: auto;
+    }
+
+    .signal-flow {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 430px) {
+    .audio-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .module-heading {
+        gap: 0.45rem;
+    }
+
+    .module-status {
+        min-width: 2.35rem;
+        padding-inline: 0.42rem;
+    }
+}
