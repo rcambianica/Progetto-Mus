@@ -28,6 +28,11 @@ import {
     createDistortionEffect
 } from "../processing/DistortionProcessor.js";
 
+import {
+    calculateChorusTailSeconds,
+    createChorusEffect
+} from "../processing/ChorusProcessor.js";
+
 export async function renderProcessedAudio(
     originalBuffer,
     settings
@@ -38,7 +43,7 @@ export async function renderProcessedAudio(
 
     /*
      * Primo passaggio:
-     * gain, EQ, compressione, distorsione e delay.
+     * gain, EQ, compressione, distorsione, chorus e delay.
      */
     let processedBuffer =
         await renderBaseProcessingChain(
@@ -100,6 +105,13 @@ async function renderBaseProcessingChain(
     audioBuffer,
     settings
 ) {
+    const chorusTailSeconds =
+        settings.chorus?.enabled
+            ? calculateChorusTailSeconds(
+                settings.chorus
+            )
+            : 0;
+
     const delayTailSeconds =
         settings.delay?.enabled
             ? calculateDelayTailSeconds(
@@ -107,10 +119,14 @@ async function renderBaseProcessingChain(
             )
             : 0;
 
+    const additionalDurationSeconds =
+        chorusTailSeconds +
+        delayTailSeconds;
+
     const offlineContext =
         createOfflineContext(
             audioBuffer,
-            delayTailSeconds
+            additionalDurationSeconds
         );
 
     const source =
@@ -174,6 +190,21 @@ async function renderBaseProcessingChain(
 
         currentNode =
             distortionEffect.output;
+    }
+
+    if (settings.chorus?.enabled) {
+        const chorusEffect =
+            createChorusEffect(
+                offlineContext,
+                settings.chorus
+            );
+
+        currentNode.connect(
+            chorusEffect.input
+        );
+
+        currentNode =
+            chorusEffect.output;
     }
 
     if (settings.delay?.enabled) {

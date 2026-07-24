@@ -420,6 +420,26 @@ function bindProcessingControls() {
             "distortionOversample"
         );
 
+    const chorusEnabled =
+        document.getElementById(
+            "chorusEnabled"
+        );
+
+    const chorusRate =
+        document.getElementById(
+            "chorusRate"
+        );
+
+    const chorusDepth =
+        document.getElementById(
+            "chorusDepth"
+        );
+
+    const chorusMix =
+        document.getElementById(
+            "chorusMix"
+        );
+
     const delayEnabled =
         document.getElementById(
             "delayEnabled"
@@ -507,6 +527,60 @@ function bindProcessingControls() {
             markProcessingAsChanged();
         }
     );
+
+    chorusEnabled.addEventListener(
+        "change",
+        () => {
+            updateProcessingSettings(
+                "chorus",
+                {
+                    enabled:
+                        chorusEnabled.checked
+                }
+            );
+
+            renderChorusControls();
+            markProcessingAsChanged();
+        }
+    );
+
+    const chorusControls = [
+        {
+            element: chorusRate,
+            settingName: "rate"
+        },
+        {
+            element: chorusDepth,
+            settingName: "depthMs"
+        },
+        {
+            element: chorusMix,
+            settingName: "mix"
+        }
+    ];
+
+    for (
+        const {
+            element,
+            settingName
+        } of chorusControls
+    ) {
+        element.addEventListener(
+            "input",
+            () => {
+                updateProcessingSettings(
+                    "chorus",
+                    {
+                        [settingName]:
+                            Number(element.value)
+                    }
+                );
+
+                renderChorusControls();
+                markProcessingAsChanged();
+            }
+        );
+    }
 
     const delayControls = [
         {
@@ -1354,6 +1428,7 @@ function render(currentState) {
     renderEqControls();
     renderCompressorControls();
     renderDistortionControls();
+    renderChorusControls();
     renderDelayControls();
     renderNormalizationControls();
     renderLimiterControls();
@@ -1747,6 +1822,78 @@ function renderDistortionControls() {
 
     driveValueElement.textContent =
         `${Math.round(settings.drive)}%`;
+
+    mixValueElement.textContent =
+        `${Math.round(
+            settings.mix * 100
+        )}%`;
+}
+
+function renderChorusControls() {
+    const enabledElement =
+        document.getElementById(
+            "chorusEnabled"
+        );
+
+    const rateElement =
+        document.getElementById(
+            "chorusRate"
+        );
+
+    const depthElement =
+        document.getElementById(
+            "chorusDepth"
+        );
+
+    const mixElement =
+        document.getElementById(
+            "chorusMix"
+        );
+
+    const rateValueElement =
+        document.getElementById(
+            "chorusRateValue"
+        );
+
+    const depthValueElement =
+        document.getElementById(
+            "chorusDepthValue"
+        );
+
+    const mixValueElement =
+        document.getElementById(
+            "chorusMixValue"
+        );
+
+    const settings =
+        state.processingSettings.chorus;
+
+    enabledElement.checked =
+        settings.enabled;
+
+    rateElement.disabled =
+        !settings.enabled;
+
+    depthElement.disabled =
+        !settings.enabled;
+
+    mixElement.disabled =
+        !settings.enabled;
+
+    rateElement.value =
+        String(settings.rate);
+
+    depthElement.value =
+        String(settings.depthMs);
+
+    mixElement.value =
+        String(settings.mix);
+
+    rateValueElement.textContent =
+        `${settings.rate.toFixed(2)} Hz`;
+
+    depthValueElement.textContent =
+        `${settings.depthMs.toFixed(1)} ms`;
 
     mixValueElement.textContent =
         `${Math.round(

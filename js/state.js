@@ -47,6 +47,14 @@ export const state = {
             oversample: "4x"
         },
 
+        chorus: {
+            enabled: false,
+            rate: 0.5,
+            depthMs: 10,
+            mix: 0.25,
+            baseDelayMs: 20
+        },
+
         limiter: {
             enabled: false,
             threshold: -1

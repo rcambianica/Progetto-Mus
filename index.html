@@ -483,14 +483,82 @@
                             </p>
                         </section>
 
-                        <!-- Future Chorus -->
-                        <section class="processing-module processing-module--placeholder" aria-disabled="true">
-                            <div class="placeholder-effect">
-                                <span class="placeholder-effect__badge">Planned</span>
-                                <p class="module-order">5. Modulation</p>
-                                <h4>Chorus</h4>
-                                <p>Reserved for a short modulated delay with rate, depth and mix controls.</p>
+                        <!-- Chorus -->
+                        <section
+                            class="processing-module processing-module--toggleable"
+                            data-toggle-input="chorusEnabled"
+                            tabindex="0"
+                            aria-pressed="false"
+                        >
+                            <input
+                                class="module-toggle-input"
+                                type="checkbox"
+                                id="chorusEnabled"
+                                tabindex="-1"
+                                aria-hidden="true"
+                            >
+
+                            <div class="module-heading">
+                                <div>
+                                    <p class="module-order">5. Modulation</p>
+                                    <h4>Chorus</h4>
+                                </div>
+                                <span class="module-status" data-module-status>Off</span>
                             </div>
+
+                            <div class="horizontal-controls-grid horizontal-controls-grid--stacked">
+                                <div class="horizontal-control">
+                                    <label for="chorusRate">
+                                        Rate
+                                        <span id="chorusRateValue">0.50 Hz</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        id="chorusRate"
+                                        min="0.05"
+                                        max="5"
+                                        value="0.5"
+                                        step="0.05"
+                                        disabled
+                                    >
+                                </div>
+
+                                <div class="horizontal-control">
+                                    <label for="chorusDepth">
+                                        Depth
+                                        <span id="chorusDepthValue">10.0 ms</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        id="chorusDepth"
+                                        min="0"
+                                        max="15"
+                                        value="10"
+                                        step="0.1"
+                                        disabled
+                                    >
+                                </div>
+
+                                <div class="horizontal-control">
+                                    <label for="chorusMix">
+                                        Wet mix
+                                        <span id="chorusMixValue">25%</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        id="chorusMix"
+                                        min="0"
+                                        max="1"
+                                        value="0.25"
+                                        step="0.01"
+                                        disabled
+                                    >
+                                </div>
+                            </div>
+
+                            <p class="effect-note">
+                                Short DelayNode modulated by a sine-wave OscillatorNode.
+                            </p>
                         </section>
 
                         <!-- Delay / Echo -->
