@@ -17,14 +17,24 @@ export function analyzeAudioBuffer(audioBuffer) {
 }
 
 export function formatDuration(durationMs) {
-    const totalSeconds = Math.floor(durationMs / 1000);
+    const roundedMs =
+        Math.max(0, Math.round(durationMs));
 
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+    const totalSeconds =
+        Math.floor(roundedMs / 1000);
 
-    const milliseconds = Math.round(durationMs % 1000);
+    const minutes =
+        Math.floor(totalSeconds / 60);
 
-    return `${minutes}:${String(seconds).padStart(2, "0")}.${String(milliseconds).padStart(3, "0")}`;
+    const seconds =
+        totalSeconds % 60;
+
+    const milliseconds =
+        roundedMs % 1000;
+
+    return `${minutes}:` +
+        `${String(seconds).padStart(2, "0")}.` +
+        `${String(milliseconds).padStart(3, "0")}`;
 }
 
 export function formatDb(dbValue) {
