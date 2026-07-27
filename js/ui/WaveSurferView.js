@@ -254,7 +254,7 @@ function addHoverPlugin(view) {
         view.waveSurfer.registerPlugin(
             HoverPlugin.create({
                 lineColor: "#1e40afeb",
-                cursorWidth:2,
+                lineWidth: 2,
                 labelBackground: "#172033",
                 labelColor: "#ffffff",
                 labelSize: 12,

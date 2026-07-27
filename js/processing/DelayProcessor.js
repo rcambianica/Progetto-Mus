@@ -100,6 +100,18 @@ export function calculateDelayTailSeconds(
     const feedback =
         sanitizedSettings.feedback;
 
+    const mix =
+        sanitizedSettings.mix;
+
+    /*
+     * Con il percorso wet completamente silenziato
+     * nessuna ripetizione è udibile e non serve
+     * estendere il buffer offline.
+     */
+    if (mix <= 0) {
+        return 0;
+    }
+
     if (delayTime <= 0) {
         return 0;
     }

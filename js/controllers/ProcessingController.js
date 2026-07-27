@@ -46,6 +46,16 @@ export class ProcessingController {
 
         this.status = "not processed";
 
+        /*
+         * Impedisce render concorrenti e permette
+         * di riconoscere un risultato diventato
+         * obsoleto durante il processing.
+         */
+        this.isProcessing = false;
+        this.settingsRevision = 0;
+        this.renderJobId = 0;
+        this.applyButton = null;
+
         this.controlsView =
             new ProcessingControlsView({
                 onSettingsChanged:
@@ -58,17 +68,19 @@ export class ProcessingController {
     bind() {
         this.controlsView.bind();
 
-        const applyButton =
+        this.applyButton =
             document.getElementById(
                 "applyProcessingBtn"
             );
 
-        applyButton.addEventListener(
+        this.applyButton.addEventListener(
             "click",
             () => {
                 this.applyProcessing();
             }
         );
+
+        this.renderApplyButtonState();
     }
 
     render() {
@@ -77,6 +89,12 @@ export class ProcessingController {
     }
 
     resetProcessedAudio() {
+        /*
+         * Invalida anche un eventuale rendering
+         * ancora in corso sulla sorgente precedente.
+         */
+        this.renderJobId += 1;
+
         this.playbackController.resetTrack(
             "processed"
         );
@@ -92,6 +110,19 @@ export class ProcessingController {
     }
 
     markSettingsChanged() {
+        this.settingsRevision += 1;
+
+        if (this.isProcessing) {
+            const status =
+                "processing — settings changed";
+
+            this.setStatus(status);
+            this.exportController.invalidate(
+                "settings changed — apply processing again"
+            );
+            return;
+        }
+
         if (state.processedBuffer) {
             const status =
                 "settings changed — apply processing again";
@@ -106,14 +137,39 @@ export class ProcessingController {
     }
 
     async applyProcessing() {
+        if (this.isProcessing) {
+            return;
+        }
+
+        const originalBuffer =
+            state.originalBuffer;
+
+        if (!originalBuffer) {
+            alert("No original audio loaded.");
+            return;
+        }
+
+        /*
+         * Il renderer riceve una copia profonda e
+         * congelata. Le modifiche successive della UI
+         * non possono quindi alterare il job in corso.
+         */
+        const settingsSnapshot =
+            createProcessingSettingsSnapshot(
+                state.processingSettings
+            );
+
+        const startingSettingsRevision =
+            this.settingsRevision;
+
+        const jobId =
+            ++this.renderJobId;
+
+        this.isProcessing = true;
+        this.renderApplyButtonState();
+
         try {
             await resumeAudioContext();
-
-            if (!state.originalBuffer) {
-                throw new Error(
-                    "No original audio loaded."
-                );
-            }
 
             this.setStatus("processing");
             this.exportController.invalidate(
@@ -126,9 +182,22 @@ export class ProcessingController {
 
             const processedBuffer =
                 await renderProcessedAudio(
-                    state.originalBuffer,
-                    state.processingSettings
+                    originalBuffer,
+                    settingsSnapshot
                 );
+
+            /*
+             * Se nel frattempo è stata caricata una
+             * nuova sorgente o il job è stato invalidato,
+             * il risultato non deve sostituire quello
+             * associato allo stato corrente.
+             */
+            if (
+                jobId !== this.renderJobId ||
+                state.originalBuffer !== originalBuffer
+            ) {
+                return;
+            }
 
             const processedInfo =
                 analyzeAudioBuffer(
@@ -153,17 +222,59 @@ export class ProcessingController {
                 processedBuffer
             );
 
-            this.setStatus("processed");
+            if (
+                jobId !== this.renderJobId ||
+                state.originalBuffer !== originalBuffer
+            ) {
+                return;
+            }
 
-            this.exportController.markReady();
+            const settingsAreCurrent =
+                this.settingsRevision ===
+                startingSettingsRevision;
+
+            if (settingsAreCurrent) {
+                this.setStatus("processed");
+                this.exportController.markReady();
+            } else {
+                const status =
+                    "settings changed — apply processing again";
+
+                this.setStatus(status);
+                this.exportController.invalidate(status);
+            }
         } catch (error) {
+            if (
+                jobId !== this.renderJobId ||
+                state.originalBuffer !== originalBuffer
+            ) {
+                return;
+            }
+
             console.error(error);
             alert(error.message);
             this.setStatus("error");
             this.exportController.invalidate(
                 "export unavailable"
             );
+        } finally {
+            /*
+             * Non può esistere un secondo job concorrente:
+             * il flag viene quindi sempre rilasciato quando
+             * il rendering corrente termina o viene scartato.
+             */
+            this.isProcessing = false;
+            this.renderApplyButtonState();
         }
+    }
+
+    renderApplyButtonState() {
+        if (!this.applyButton) {
+            return;
+        }
+
+        this.applyButton.disabled =
+            this.isProcessing;
     }
 
     setStatus(status) {
@@ -180,4 +291,30 @@ export class ProcessingController {
         statusElement.textContent =
             this.status;
     }
+}
+function createProcessingSettingsSnapshot(settings) {
+    const snapshot =
+        typeof structuredClone === "function"
+            ? structuredClone(settings)
+            : JSON.parse(JSON.stringify(settings));
+
+    return deepFreeze(snapshot);
+}
+
+function deepFreeze(value) {
+    if (
+        value === null ||
+        typeof value !== "object" ||
+        Object.isFrozen(value)
+    ) {
+        return value;
+    }
+
+    Object.freeze(value);
+
+    for (const nestedValue of Object.values(value)) {
+        deepFreeze(nestedValue);
+    }
+
+    return value;
 }
