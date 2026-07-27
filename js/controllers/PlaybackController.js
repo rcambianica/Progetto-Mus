@@ -3,10 +3,6 @@ import {
 } from "../state.js";
 
 import {
-    resumeAudioContext
-} from "../audio/AudioContextManager.js";
-
-import {
     AudioPlayer
 } from "../audio/AudioPlayer.js";
 
@@ -24,30 +20,31 @@ export class PlaybackController {
                 name: "original",
                 getBuffer: () => state.originalBuffer,
                 syncWaveformToTime:
-                    syncOriginalWaveformToTime,
-                missingAudioMessage:
-                    "No original audio loaded."
+                    syncOriginalWaveformToTime
             }),
 
             processed: createTrack({
                 name: "processed",
                 getBuffer: () => state.processedBuffer,
                 syncWaveformToTime:
-                    syncProcessedWaveformToTime,
-                missingAudioMessage:
-                    "No processed audio available. Apply processing first."
+                    syncProcessedWaveformToTime
             })
         };
     }
 
     bind() {
-        this.bindTrackControls(
-            this.tracks.original
-        );
+        Object.values(this.tracks)
+            .forEach(track => {
+                this.bindTrackControls(track);
+                this.renderTrackControls(track);
+            });
+    }
 
-        this.bindTrackControls(
-            this.tracks.processed
-        );
+    render() {
+        Object.values(this.tracks)
+            .forEach(track => {
+                this.renderTrackControls(track);
+            });
     }
 
     setupTrack(
@@ -58,43 +55,88 @@ export class PlaybackController {
         const track =
             this.getTrack(trackName);
 
+        this.stopAnimation(track);
+
         if (!track.player) {
             track.player =
-                new AudioPlayer(audioContext);
+                new AudioPlayer(
+                    audioContext,
+                    {
+                        onEnded: () => {
+                            this.handleTrackEnded(
+                                trackName
+                            );
+                        }
+                    }
+                );
         }
 
         track.player.setBuffer(audioBuffer);
         track.syncWaveformToTime(0);
-
-        this.renderTrack(track);
+        this.renderTrackControls(track);
     }
 
     resetTrack(trackName) {
         const track =
             this.getTrack(trackName);
 
+        this.stopAnimation(track);
+
         if (track.player) {
             track.player.stop();
         }
 
-        this.stopPlaybackAnimation(track);
         track.syncWaveformToTime(0);
-
-        const seekSlider =
-            document.getElementById(
-                track.seekSliderId
-            );
-
-        if (seekSlider) {
-            seekSlider.value = 0;
-        }
-
-        this.renderTrack(track);
+        this.renderTrackControls(track);
     }
 
-    handleWaveformInteraction(
+    async toggleTrackPlayback(trackName) {
+        const track =
+            this.getTrack(trackName);
+
+        if (!track.player || !track.getBuffer()) {
+            return;
+        }
+
+        if (track.player.isPlaying) {
+            track.player.pause();
+
+            this.stopAnimation(track);
+
+            track.syncWaveformToTime(
+                track.player.getCurrentTimeMs()
+            );
+
+            this.renderTrackControls(track);
+            return;
+        }
+
+        const durationMs =
+            track.player.getDurationMs();
+
+        if (
+            track.player.getCurrentTimeMs() >=
+            durationMs
+        ) {
+            track.player.seek(0);
+            track.syncWaveformToTime(0);
+        }
+
+        if (
+            track.player.audioContext.state ===
+            "suspended"
+        ) {
+            await track.player.audioContext.resume();
+        }
+
+        track.player.play();
+        this.renderTrackControls(track);
+        this.startAnimation(track);
+    }
+
+    seekTrack(
         trackName,
-        timeMs
+        timeSeconds
     ) {
         const track =
             this.getTrack(trackName);
@@ -103,40 +145,49 @@ export class PlaybackController {
             return;
         }
 
+        const timeMs =
+            Number.isFinite(timeSeconds)
+                ? timeSeconds * 1000
+                : 0;
+
+        // AudioPlayer usa AudioBufferSourceNode: il seek viene quindi
+        // applicato al player Web Audio e non al media element di WaveSurfer.
         track.player.seek(timeMs);
 
-        updateSeekSliderValue(
-            track.seekSliderId,
-            timeMs,
-            track.player.getDurationMs()
+        track.syncWaveformToTime(
+            track.player.getCurrentTimeMs()
         );
 
-        this.renderTrack(track);
-
+        // Il seek durante la riproduzione sostituisce
+        // l'AudioBufferSourceNode. Riavviamo esplicitamente il
+        // ciclo grafico per mantenerlo associato allo stato corrente.
         if (track.player.isPlaying) {
-            this.startPlaybackAnimation(track);
+            this.startAnimation(track);
+        } else {
+            this.stopAnimation(track);
         }
+
+        this.renderTrackControls(track);
     }
 
-    render() {
-        this.renderTrack(
-            this.tracks.original
-        );
+    stopTrack(trackName) {
+        const track =
+            this.getTrack(trackName);
 
-        this.renderTrack(
-            this.tracks.processed
-        );
+        if (!track.player || !track.getBuffer()) {
+            return;
+        }
+
+        this.stopAnimation(track);
+        track.player.stop();
+        track.syncWaveformToTime(0);
+        this.renderTrackControls(track);
     }
 
     bindTrackControls(track) {
-        const playButton =
+        const playPauseButton =
             document.getElementById(
-                track.playButtonId
-            );
-
-        const pauseButton =
-            document.getElementById(
-                track.pauseButtonId
+                track.playPauseButtonId
             );
 
         const stopButton =
@@ -144,46 +195,18 @@ export class PlaybackController {
                 track.stopButtonId
             );
 
-        const seekSlider =
-            document.getElementById(
-                track.seekSliderId
+        if (!playPauseButton || !stopButton) {
+            throw new Error(
+                `Playback controls not found for track: ${track.name}`
             );
+        }
 
-        playButton.addEventListener(
+        playPauseButton.addEventListener(
             "click",
             async () => {
                 try {
-                    await resumeAudioContext();
-
-                    const buffer =
-                        track.getBuffer();
-
-                    if (!track.player && buffer) {
-                        track.player =
-                            new AudioPlayer(
-                                state.audioContext
-                            );
-
-                        track.player.setBuffer(
-                            buffer
-                        );
-                    }
-
-                    if (!track.player) {
-                        throw new Error(
-                            track.missingAudioMessage
-                        );
-                    }
-
-                    track.player.play();
-
-                    track.syncWaveformToTime(
-                        track.player
-                            .getCurrentTimeMs()
-                    );
-
-                    this.startPlaybackAnimation(
-                        track
+                    await this.toggleTrackPlayback(
+                        track.name
                     );
                 } catch (error) {
                     console.error(error);
@@ -192,211 +215,90 @@ export class PlaybackController {
             }
         );
 
-        pauseButton.addEventListener(
-            "click",
-            () => {
-                if (!track.player) {
-                    return;
-                }
-
-                track.player.pause();
-
-                track.syncWaveformToTime(
-                    track.player
-                        .getCurrentTimeMs()
-                );
-
-                this.stopPlaybackAnimation(track);
-                this.renderTrack(track);
-            }
-        );
-
         stopButton.addEventListener(
             "click",
             () => {
-                if (!track.player) {
-                    return;
-                }
-
-                track.player.stop();
-                track.syncWaveformToTime(0);
-
-                this.stopPlaybackAnimation(track);
-                this.renderTrack(track);
-            }
-        );
-
-        seekSlider.addEventListener(
-            "input",
-            () => {
-                track.isUserSeeking = true;
-
-                this.renderSliderPreview(track);
-            }
-        );
-
-        seekSlider.addEventListener(
-            "change",
-            () => {
-                if (!track.player) {
-                    return;
-                }
-
-                const durationMs =
-                    track.player.getDurationMs();
-
-                const ratio =
-                    Number(seekSlider.value) /
-                    1000;
-
-                const targetTimeMs =
-                    durationMs * ratio;
-
-                track.player.seek(
-                    targetTimeMs
-                );
-
-                track.syncWaveformToTime(
-                    targetTimeMs
-                );
-
-                track.isUserSeeking = false;
-
-                this.renderTrack(track);
-
-                if (track.player.isPlaying) {
-                    this.startPlaybackAnimation(
-                        track
-                    );
-                }
+                this.stopTrack(track.name);
             }
         );
     }
 
-    startPlaybackAnimation(track) {
-        this.stopPlaybackAnimation(track);
+    renderTrackControls(track) {
+        const playPauseButton =
+            document.getElementById(
+                track.playPauseButtonId
+            );
 
-        const tick = () => {
-            this.renderTrack(track);
+        const stopButton =
+            document.getElementById(
+                track.stopButtonId
+            );
 
-            if (track.player) {
-                track.syncWaveformToTime(
-                    track.player
-                        .getCurrentTimeMs()
-                );
-            }
-
-            if (
-                track.player &&
-                track.player.isPlaying
-            ) {
-                track.playbackAnimationId =
-                    requestAnimationFrame(tick);
-            }
-        };
-
-        track.playbackAnimationId =
-            requestAnimationFrame(tick);
-    }
-
-    stopPlaybackAnimation(track) {
-        if (
-            track.playbackAnimationId ===
-            null
-        ) {
+        if (!playPauseButton || !stopButton) {
             return;
         }
 
-        cancelAnimationFrame(
-            track.playbackAnimationId
-        );
+        const hasAudio =
+            Boolean(
+                track.player &&
+                track.getBuffer()
+            );
 
-        track.playbackAnimationId = null;
+        const isPlaying =
+            Boolean(
+                hasAudio &&
+                track.player.isPlaying
+            );
+
+        playPauseButton.disabled = !hasAudio;
+        stopButton.disabled = !hasAudio;
+
+        playPauseButton.textContent =
+            isPlaying
+                ? "Pause"
+                : "Play";
+
+        this.renderTrackTime(track);
     }
 
-    renderTrack(track) {
-        const seekSlider =
-            document.getElementById(
-                track.seekSliderId
-            );
-
+    renderTrackTime(track) {
         const currentTimeElement =
             document.getElementById(
-                track.currentTimeId
+                track.currentTimeElementId
             );
 
-        const totalTimeElement =
+        const durationElement =
             document.getElementById(
-                track.totalTimeId
+                track.durationElementId
             );
 
-        if (!track.getBuffer() || !track.player) {
-            seekSlider.value = 0;
+        if (!currentTimeElement || !durationElement) {
+            return;
+        }
+
+        const hasAudio =
+            Boolean(
+                track.player &&
+                track.getBuffer()
+            );
+
+        if (!hasAudio) {
             currentTimeElement.textContent =
                 "0:00.000";
-            totalTimeElement.textContent =
-                "0:00.000";
+
+            durationElement.textContent = "-";
             return;
         }
 
-        const currentTimeMs =
-            track.player.getCurrentTimeMs();
-
-        const durationMs =
-            track.player.getDurationMs();
-
         currentTimeElement.textContent =
-            formatDuration(currentTimeMs);
-
-        totalTimeElement.textContent =
-            formatDuration(durationMs);
-
-        if (
-            !track.isUserSeeking &&
-            durationMs > 0
-        ) {
-            seekSlider.value =
-                Math.round(
-                    currentTimeMs /
-                    durationMs *
-                    1000
-                );
-        }
-    }
-
-    renderSliderPreview(track) {
-        if (!track.player) {
-            return;
-        }
-
-        const seekSlider =
-            document.getElementById(
-                track.seekSliderId
+            formatDuration(
+                track.player.getCurrentTimeMs()
             );
 
-        const currentTimeElement =
-            document.getElementById(
-                track.currentTimeId
+        durationElement.textContent =
+            formatDuration(
+                track.player.getDurationMs()
             );
-
-        const totalTimeElement =
-            document.getElementById(
-                track.totalTimeId
-            );
-
-        const durationMs =
-            track.player.getDurationMs();
-
-        const previewTimeMs =
-            durationMs *
-            Number(seekSlider.value) /
-            1000;
-
-        currentTimeElement.textContent =
-            formatDuration(previewTimeMs);
-
-        totalTimeElement.textContent =
-            formatDuration(durationMs);
     }
 
     getTrack(trackName) {
@@ -411,52 +313,76 @@ export class PlaybackController {
 
         return track;
     }
+
+    startAnimation(track) {
+        this.stopAnimation(track);
+
+        const update = () => {
+            if (
+                !track.player ||
+                !track.player.isPlaying
+            ) {
+                track.animationFrameId = null;
+                return;
+            }
+
+            track.syncWaveformToTime(
+                track.player.getCurrentTimeMs()
+            );
+
+            this.renderTrackTime(track);
+
+            track.animationFrameId =
+                requestAnimationFrame(update);
+        };
+
+        track.animationFrameId =
+            requestAnimationFrame(update);
+    }
+
+    stopAnimation(track) {
+        if (
+            track.animationFrameId ===
+            null
+        ) {
+            return;
+        }
+
+        cancelAnimationFrame(
+            track.animationFrameId
+        );
+
+        track.animationFrameId = null;
+    }
+
+    handleTrackEnded(trackName) {
+        const track =
+            this.getTrack(trackName);
+
+        this.stopAnimation(track);
+        track.syncWaveformToTime(0);
+        this.renderTrackControls(track);
+    }
 }
 
 function createTrack({
     name,
     getBuffer,
-    syncWaveformToTime,
-    missingAudioMessage
+    syncWaveformToTime
 }) {
     return {
         name,
         player: null,
-        playbackAnimationId: null,
-        isUserSeeking: false,
-
         getBuffer,
-
-        playButtonId: `${name}PlayBtn`,
-        pauseButtonId: `${name}PauseBtn`,
-        stopButtonId: `${name}StopBtn`,
-
-        seekSliderId: `${name}SeekSlider`,
-        currentTimeId: `${name}CurrentTime`,
-        totalTimeId: `${name}TotalTime`,
-
         syncWaveformToTime,
-        missingAudioMessage
+        animationFrameId: null,
+        playPauseButtonId:
+            `${name}PlayPauseBtn`,
+        stopButtonId:
+            `${name}StopBtn`,
+        currentTimeElementId:
+            `${name}CurrentTime`,
+        durationElementId:
+            `${name}Duration`
     };
-}
-
-function updateSeekSliderValue(
-    sliderId,
-    timeMs,
-    durationMs
-) {
-    const seekSlider =
-        document.getElementById(sliderId);
-
-    if (!durationMs || durationMs <= 0) {
-        seekSlider.value = 0;
-        return;
-    }
-
-    seekSlider.value =
-        Math.round(
-            timeMs /
-            durationMs *
-            1000
-        );
 }

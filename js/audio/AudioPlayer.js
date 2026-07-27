@@ -1,6 +1,10 @@
 export class AudioPlayer {
-    constructor(audioContext) {
+    constructor(
+        audioContext,
+        { onEnded = null } = {}
+    ) {
         this.audioContext = audioContext;
+        this.onEnded = onEnded;
 
         this.buffer = null;
         this.source = null;
@@ -9,8 +13,6 @@ export class AudioPlayer {
         this.startedAt = 0;
         this.pausedAt = 0;
         this.isPlaying = false;
-
-        this.ignoreEndedEvent = false;
 
         this.gainNode.connect(this.audioContext.destination);
     }
@@ -31,28 +33,37 @@ export class AudioPlayer {
             return;
         }
 
-        this.source = this.audioContext.createBufferSource();
-        this.source.buffer = this.buffer;
-        this.source.connect(this.gainNode);
+        const source =
+            this.audioContext.createBufferSource();
+
+        source.buffer = this.buffer;
+        source.connect(this.gainNode);
 
         const offsetSeconds = this.pausedAt;
 
         this.startedAt =
             this.audioContext.currentTime - offsetSeconds;
 
-        this.ignoreEndedEvent = false;
+        this.source = source;
 
-        this.source.onended = () => {
-            if (this.ignoreEndedEvent) {
+        source.onended = () => {
+            // Un nodo fermato per pausa, stop o seek può emettere
+            // comunque `ended`. Ignoriamo gli eventi appartenenti
+            // a una source che non è più quella attiva.
+            if (this.source !== source) {
                 return;
             }
 
             this.isPlaying = false;
             this.pausedAt = 0;
             this.source = null;
+
+            if (typeof this.onEnded === "function") {
+                this.onEnded();
+            }
         };
 
-        this.source.start(0, offsetSeconds);
+        source.start(0, offsetSeconds);
 
         this.isPlaying = true;
     }
@@ -88,14 +99,25 @@ export class AudioPlayer {
         const clampedMs =
             Math.max(0, Math.min(timeMs, durationMs));
 
+        const wasPlaying = this.isPlaying;
+
         this.pausedAt =
             clampedMs / 1000;
 
-        if (this.isPlaying) {
-            this.stopSourceOnly();
-            this.isPlaying = false;
-            this.play();
+        if (!wasPlaying) {
+            return;
         }
+
+        this.stopSourceOnly();
+        this.isPlaying = false;
+
+        // Se il seek porta esattamente alla fine, non viene creata
+        // una nuova source priva di contenuto da riprodurre.
+        if (clampedMs >= durationMs) {
+            return;
+        }
+
+        this.play();
     }
 
     getCurrentTimeMs() {
@@ -132,15 +154,20 @@ export class AudioPlayer {
             return;
         }
 
-        this.ignoreEndedEvent = true;
+        const source = this.source;
+
+        // La source non è più considerata attiva prima di chiamare
+        // stop(), così un eventuale evento `ended` tardivo non può
+        // modificare lo stato del player o della nuova source.
+        this.source = null;
+        source.onended = null;
 
         try {
-            this.source.stop();
+            source.stop();
         } catch {
             // La source potrebbe essere già terminata.
         }
 
-        this.source.disconnect();
-        this.source = null;
+        source.disconnect();
     }
 }

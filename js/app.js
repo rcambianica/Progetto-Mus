@@ -64,22 +64,21 @@ document.addEventListener(
 );
 
 function initializeApp() {
-    initializeWaveSurfers(
-        timeMs => {
-            playbackController
-                .handleWaveformInteraction(
+    initializeWaveSurfers({
+        onOriginalSeek:
+            timeSeconds => playbackController
+                .seekTrack(
                     "original",
-                    timeMs
-                );
-        },
-        timeMs => {
-            playbackController
-                .handleWaveformInteraction(
+                    timeSeconds
+                ),
+
+        onProcessedSeek:
+            timeSeconds => playbackController
+                .seekTrack(
                     "processed",
-                    timeMs
-                );
-        }
-    );
+                    timeSeconds
+                )
+    });
 
     playbackController.bind();
     processingController.bind();

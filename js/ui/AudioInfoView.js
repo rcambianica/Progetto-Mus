@@ -1,5 +1,6 @@
 import {
-    formatDb
+    formatDb,
+    formatDuration
 } from "../analysis/AudioInfo.js";
 
 export function renderAudioInfo(currentState) {
@@ -49,6 +50,16 @@ function renderProcessedAudioInfo(currentState) {
 
 function getMetricElements(prefix) {
     return {
+        currentTime:
+            document.getElementById(
+                `${prefix}CurrentTime`
+            ),
+
+        duration:
+            document.getElementById(
+                `${prefix}Duration`
+            ),
+
         sampleRate:
             document.getElementById(
                 `${prefix}SampleRate`
@@ -84,6 +95,11 @@ function renderMetricElements(
     elements,
     audioInfo
 ) {
+    // La posizione corrente è aggiornata dal PlaybackController.
+    // Qui mostriamo soltanto la durata effettiva del buffer.
+    elements.duration.textContent =
+        formatDuration(audioInfo.durationMs);
+
     elements.sampleRate.textContent =
         `${audioInfo.sampleRate} Hz`;
 

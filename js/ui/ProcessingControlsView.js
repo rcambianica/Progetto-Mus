@@ -452,11 +452,6 @@ export class ProcessingControlsView {
                 enabled
             );
 
-            moduleElement.setAttribute(
-                "aria-pressed",
-                String(enabled)
-            );
-
             const statusElement =
                 moduleElement.querySelector(
                     "[data-module-status]"

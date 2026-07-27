@@ -88,20 +88,21 @@ export class ProcessingController {
 
         this.setStatus("not processed");
 
-        this.exportController.setStatus(
-            "no processed audio"
-        );
+        this.exportController.reset();
     }
 
     markSettingsChanged() {
         if (state.processedBuffer) {
-            this.setStatus(
-                "settings changed — apply processing again"
-            );
+            const status =
+                "settings changed — apply processing again";
+
+            this.setStatus(status);
+            this.exportController.invalidate(status);
             return;
         }
 
         this.setStatus("not processed");
+        this.exportController.reset();
     }
 
     async applyProcessing() {
@@ -115,6 +116,9 @@ export class ProcessingController {
             }
 
             this.setStatus("processing");
+            this.exportController.invalidate(
+                "processing audio"
+            );
 
             this.playbackController.resetTrack(
                 "processed"
@@ -151,13 +155,14 @@ export class ProcessingController {
 
             this.setStatus("processed");
 
-            this.exportController.setStatus(
-                "ready for download"
-            );
+            this.exportController.markReady();
         } catch (error) {
             console.error(error);
             alert(error.message);
             this.setStatus("error");
+            this.exportController.invalidate(
+                "export unavailable"
+            );
         }
     }
 

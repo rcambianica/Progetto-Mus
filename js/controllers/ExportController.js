@@ -10,6 +10,8 @@ export class ExportController {
     constructor() {
         this.status =
             "no processed audio";
+
+        this.isInvalidated = false;
     }
 
     bind() {
@@ -61,14 +63,18 @@ export class ExportController {
         const hasProcessedAudio =
             Boolean(state.processedBuffer);
 
+        const canExport =
+            hasProcessedAudio &&
+            !this.isInvalidated;
+
         downloadButton.disabled =
-            !hasProcessedAudio;
+            !canExport;
 
         fileNameInput.disabled =
-            !hasProcessedAudio;
+            !canExport;
 
         if (
-            hasProcessedAudio &&
+            canExport &&
             !fileNameInput.dataset.userEdited
         ) {
             fileNameInput.value =
@@ -76,6 +82,27 @@ export class ExportController {
         }
 
         this.renderStatus();
+    }
+
+    invalidate(
+        status =
+            "settings changed — apply processing again"
+    ) {
+        this.isInvalidated = true;
+        this.status = status;
+        this.render();
+    }
+
+    markReady() {
+        this.isInvalidated = false;
+        this.status = "ready for download";
+        this.render();
+    }
+
+    reset() {
+        this.isInvalidated = false;
+        this.status = "no processed audio";
+        this.render();
     }
 
     setStatus(status) {
@@ -87,6 +114,12 @@ export class ExportController {
         if (!state.processedBuffer) {
             throw new Error(
                 "No processed audio available. Apply processing first."
+            );
+        }
+
+        if (this.isInvalidated) {
+            throw new Error(
+                "Processing settings changed. Apply processing again before exporting."
             );
         }
 

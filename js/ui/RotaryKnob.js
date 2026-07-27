@@ -104,31 +104,6 @@ function createRotaryKnobController(
             `${ratio * 270}deg`
         );
 
-        knobElement.setAttribute(
-            "aria-valuemin",
-            String(minimum)
-        );
-
-        knobElement.setAttribute(
-            "aria-valuemax",
-            String(maximum)
-        );
-
-        knobElement.setAttribute(
-            "aria-valuenow",
-            String(value)
-        );
-
-        knobElement.setAttribute(
-            "aria-valuetext",
-            `${value}${knobElement.dataset.unit ?? ""}`
-        );
-
-        knobElement.setAttribute(
-            "aria-disabled",
-            String(inputElement.disabled)
-        );
-
         knobElement.classList.toggle(
             "is-disabled",
             inputElement.disabled

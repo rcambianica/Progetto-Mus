@@ -97,6 +97,19 @@
     .signal-flow {
         justify-content: flex-start;
     }
+
+    .playback-row {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .playback-controls {
+        justify-content: stretch;
+    }
+
+    .playback-controls button {
+        flex: 1;
+    }
 }
 
 @media (max-width: 430px) {
