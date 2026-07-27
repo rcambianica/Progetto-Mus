@@ -1,5 +1,12 @@
 {
   "dependencies": {
     "wavesurfer.js": "7.12.11"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.0"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:ui": "playwright test --ui"
   }
 }
