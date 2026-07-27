@@ -12,16 +12,67 @@ module.exports = defineConfig({
         timeout: 5_000
     },
 
+    /*
+     * In locale usa il parallelismo normale.
+     * In CI un worker solo rende più stabili
+     * soprattutto i test Web Audio.
+     */
+    workers:
+        process.env.CI
+            ? 1
+            : undefined,
+
+    retries:
+        process.env.CI
+            ? 1
+            : 0,
+
+    reporter: [
+        ["list"],
+        [
+            "html",
+            {
+                open: "never"
+            }
+        ]
+    ],
+
     use: {
-        baseURL: "http://127.0.0.1:8000",
-        trace: "on-first-retry"
+        baseURL:
+            "http://127.0.0.1:8000",
+
+        trace:
+            "on-first-retry"
     },
 
     projects: [
         {
             name: "chromium",
+
             use: {
-                ...devices["Desktop Chrome"]
+                ...devices[
+                    "Desktop Chrome"
+                ]
+            }
+        },
+
+        {
+            name: "firefox",
+
+            use: {
+                ...devices[
+                    "Desktop Firefox"
+                ]
+            }
+        },
+
+        {
+            name: "webkit",
+
+            use: {
+                ...devices[
+                    "Desktop Safari"
+                ]
             }
         }
     ],
