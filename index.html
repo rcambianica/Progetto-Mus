@@ -14,7 +14,6 @@
 
     <header class="app-header">
         <div class="app-header__content">
-            <p class="app-kicker">Web Audio API project</p>
             <h1>Audio Processing and Mastering</h1>
             <p class="app-subtitle">
                 Load or record audio, build an offline processing chain and compare the original signal with the result.
@@ -38,11 +37,7 @@
                     <h3>Upload Audio File</h3>
 
                     <label for="audioFileInput">Select WAV, MP3 or OGG</label>
-                    <input
-                        type="file"
-                        id="audioFileInput"
-                        accept="audio/wav,audio/mpeg,audio/ogg,audio/*"
-                    >
+                    <input type="file" id="audioFileInput" accept="audio/wav,audio/mpeg,audio/ogg,audio/*">
 
                     <p class="input-summary">
                         File:
@@ -82,7 +77,8 @@
                 <div>
                     <h2>Waveform Comparison</h2>
                 </div>
-                <p>Use the buttons to play, pause or stop. Click a waveform only to move the Web Audio playback position.</p>
+                <p>Use the buttons to play, pause or stop. Click a waveform only to move the Web Audio playback
+                    position.</p>
             </div>
 
             <div class="waveform-comparison">
@@ -199,22 +195,10 @@
 
                             <div class="rotary-control">
                                 <label class="visually-hidden" for="gainSlider">Input gain</label>
-                                <input
-                                    class="knob-native-input"
-                                    type="range"
-                                    id="gainSlider"
-                                    min="0"
-                                    max="4"
-                                    value="1"
-                                    step="0.01"
-                                >
-                                <div
-                                    class="rotary-knob"
-                                    data-knob-for="gainSlider"
-                                    data-default="1"
-                                    data-unit="x"
-                                    tabindex="0"
-                                >
+                                <input class="knob-native-input" type="range" id="gainSlider" min="0" max="4" value="1"
+                                    step="0.01">
+                                <div class="rotary-knob" data-knob-for="gainSlider" data-default="1" data-unit="x"
+                                    tabindex="0">
                                     <span class="rotary-knob__indicator"></span>
                                 </div>
                                 <div class="knob-scale"><span>0</span><span>4</span></div>
@@ -224,17 +208,9 @@
                         </section>
 
                         <!-- Three-Band Equalizer -->
-                        <section
-                            class="processing-module processing-module--toggleable eq-module"
-                            data-toggle-input="eqEnabled"
-                            tabindex="0"
-                        >
-                            <input
-                                class="module-toggle-input"
-                                type="checkbox"
-                                id="eqEnabled"
-                                tabindex="-1"
-                            >
+                        <section class="processing-module processing-module--toggleable eq-module"
+                            data-toggle-input="eqEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="eqEnabled" tabindex="-1">
 
                             <div class="module-heading">
                                 <div>
@@ -248,16 +224,8 @@
                                 <div class="eq-band">
                                     <span class="eq-band__value" id="eqLowGainValue">0.0 dB</span>
                                     <div class="vertical-slider-shell">
-                                        <input
-                                            class="vertical-range"
-                                            type="range"
-                                            id="eqLowGain"
-                                            min="-12"
-                                            max="12"
-                                            value="0"
-                                            step="0.5"
-                                            disabled
-                                        >
+                                        <input class="vertical-range" type="range" id="eqLowGain" min="-12" max="12"
+                                            value="0" step="0.5" disabled>
                                     </div>
                                     <label for="eqLowGain">Low</label>
                                     <small>250 Hz</small>
@@ -266,16 +234,8 @@
                                 <div class="eq-band">
                                     <span class="eq-band__value" id="eqMidGainValue">0.0 dB</span>
                                     <div class="vertical-slider-shell">
-                                        <input
-                                            class="vertical-range"
-                                            type="range"
-                                            id="eqMidGain"
-                                            min="-12"
-                                            max="12"
-                                            value="0"
-                                            step="0.5"
-                                            disabled
-                                        >
+                                        <input class="vertical-range" type="range" id="eqMidGain" min="-12" max="12"
+                                            value="0" step="0.5" disabled>
                                     </div>
                                     <label for="eqMidGain">Mid</label>
                                     <small>1000 Hz</small>
@@ -284,16 +244,8 @@
                                 <div class="eq-band">
                                     <span class="eq-band__value" id="eqHighGainValue">0.0 dB</span>
                                     <div class="vertical-slider-shell">
-                                        <input
-                                            class="vertical-range"
-                                            type="range"
-                                            id="eqHighGain"
-                                            min="-12"
-                                            max="12"
-                                            value="0"
-                                            step="0.5"
-                                            disabled
-                                        >
+                                        <input class="vertical-range" type="range" id="eqHighGain" min="-12" max="12"
+                                            value="0" step="0.5" disabled>
                                     </div>
                                     <label for="eqHighGain">High</label>
                                     <small>5000 Hz</small>
@@ -302,17 +254,9 @@
                         </section>
 
                         <!-- Dynamic Range Compressor -->
-                        <section
-                            class="processing-module processing-module--toggleable"
-                            data-toggle-input="compressorEnabled"
-                            tabindex="0"
-                        >
-                            <input
-                                class="module-toggle-input"
-                                type="checkbox"
-                                id="compressorEnabled"
-                                tabindex="-1"
-                            >
+                        <section class="processing-module processing-module--toggleable"
+                            data-toggle-input="compressorEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="compressorEnabled" tabindex="-1">
 
                             <div class="module-heading">
                                 <div>
@@ -328,15 +272,8 @@
                                         Threshold
                                         <span id="compressorThresholdValue">-24 dB</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="compressorThreshold"
-                                        min="-100"
-                                        max="0"
-                                        value="-24"
-                                        step="1"
-                                        disabled
-                                    >
+                                    <input type="range" id="compressorThreshold" min="-100" max="0" value="-24" step="1"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -344,15 +281,8 @@
                                         Ratio
                                         <span id="compressorRatioValue">4.0:1</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="compressorRatio"
-                                        min="1"
-                                        max="20"
-                                        value="4"
-                                        step="0.1"
-                                        disabled
-                                    >
+                                    <input type="range" id="compressorRatio" min="1" max="20" value="4" step="0.1"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -360,15 +290,8 @@
                                         Attack
                                         <span id="compressorAttackValue">0.003 s</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="compressorAttack"
-                                        min="0"
-                                        max="1"
-                                        value="0.003"
-                                        step="0.001"
-                                        disabled
-                                    >
+                                    <input type="range" id="compressorAttack" min="0" max="1" value="0.003" step="0.001"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -376,15 +299,8 @@
                                         Release
                                         <span id="compressorReleaseValue">0.250 s</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="compressorRelease"
-                                        min="0"
-                                        max="1"
-                                        value="0.25"
-                                        step="0.01"
-                                        disabled
-                                    >
+                                    <input type="range" id="compressorRelease" min="0" max="1" value="0.25" step="0.01"
+                                        disabled>
                                 </div>
                             </div>
                         </section>
@@ -403,17 +319,9 @@
 
                     <div class="processing-grid processing-grid--four">
                         <!-- Distortion / Saturation -->
-                        <section
-                            class="processing-module processing-module--toggleable"
-                            data-toggle-input="distortionEnabled"
-                            tabindex="0"
-                        >
-                            <input
-                                class="module-toggle-input"
-                                type="checkbox"
-                                id="distortionEnabled"
-                                tabindex="-1"
-                            >
+                        <section class="processing-module processing-module--toggleable"
+                            data-toggle-input="distortionEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="distortionEnabled" tabindex="-1">
 
                             <div class="module-heading">
                                 <div>
@@ -429,15 +337,8 @@
                                         Drive
                                         <span id="distortionDriveValue">25%</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="distortionDrive"
-                                        min="0"
-                                        max="100"
-                                        value="25"
-                                        step="1"
-                                        disabled
-                                    >
+                                    <input type="range" id="distortionDrive" min="0" max="100" value="25" step="1"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -445,15 +346,8 @@
                                         Wet mix
                                         <span id="distortionMixValue">35%</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="distortionMix"
-                                        min="0"
-                                        max="1"
-                                        value="0.35"
-                                        step="0.01"
-                                        disabled
-                                    >
+                                    <input type="range" id="distortionMix" min="0" max="1" value="0.35" step="0.01"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -474,17 +368,9 @@
                         </section>
 
                         <!-- Chorus -->
-                        <section
-                            class="processing-module processing-module--toggleable"
-                            data-toggle-input="chorusEnabled"
-                            tabindex="0"
-                        >
-                            <input
-                                class="module-toggle-input"
-                                type="checkbox"
-                                id="chorusEnabled"
-                                tabindex="-1"
-                            >
+                        <section class="processing-module processing-module--toggleable"
+                            data-toggle-input="chorusEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="chorusEnabled" tabindex="-1">
 
                             <div class="module-heading">
                                 <div>
@@ -500,15 +386,8 @@
                                         Rate
                                         <span id="chorusRateValue">0.50 Hz</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="chorusRate"
-                                        min="0.05"
-                                        max="5"
-                                        value="0.5"
-                                        step="0.05"
-                                        disabled
-                                    >
+                                    <input type="range" id="chorusRate" min="0.05" max="5" value="0.5" step="0.05"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -516,15 +395,8 @@
                                         Depth
                                         <span id="chorusDepthValue">10.0 ms</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="chorusDepth"
-                                        min="0"
-                                        max="15"
-                                        value="10"
-                                        step="0.1"
-                                        disabled
-                                    >
+                                    <input type="range" id="chorusDepth" min="0" max="15" value="10" step="0.1"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -532,15 +404,8 @@
                                         Wet mix
                                         <span id="chorusMixValue">25%</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="chorusMix"
-                                        min="0"
-                                        max="1"
-                                        value="0.25"
-                                        step="0.01"
-                                        disabled
-                                    >
+                                    <input type="range" id="chorusMix" min="0" max="1" value="0.25" step="0.01"
+                                        disabled>
                                 </div>
                             </div>
 
@@ -550,17 +415,9 @@
                         </section>
 
                         <!-- Delay / Echo -->
-                        <section
-                            class="processing-module processing-module--toggleable"
-                            data-toggle-input="delayEnabled"
-                            tabindex="0"
-                        >
-                            <input
-                                class="module-toggle-input"
-                                type="checkbox"
-                                id="delayEnabled"
-                                tabindex="-1"
-                            >
+                        <section class="processing-module processing-module--toggleable"
+                            data-toggle-input="delayEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="delayEnabled" tabindex="-1">
 
                             <div class="module-heading">
                                 <div>
@@ -576,15 +433,8 @@
                                         Delay time
                                         <span id="delayTimeValue">0.250 s</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="delayTime"
-                                        min="0"
-                                        max="2"
-                                        value="0.25"
-                                        step="0.01"
-                                        disabled
-                                    >
+                                    <input type="range" id="delayTime" min="0" max="2" value="0.25" step="0.01"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -592,15 +442,8 @@
                                         Feedback
                                         <span id="delayFeedbackValue">30%</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="delayFeedback"
-                                        min="0"
-                                        max="0.9"
-                                        value="0.3"
-                                        step="0.01"
-                                        disabled
-                                    >
+                                    <input type="range" id="delayFeedback" min="0" max="0.9" value="0.3" step="0.01"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -608,31 +451,15 @@
                                         Wet mix
                                         <span id="delayMixValue">25%</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="delayMix"
-                                        min="0"
-                                        max="1"
-                                        value="0.25"
-                                        step="0.01"
-                                        disabled
-                                    >
+                                    <input type="range" id="delayMix" min="0" max="1" value="0.25" step="0.01" disabled>
                                 </div>
                             </div>
                         </section>
 
                         <!-- Reverb -->
-                        <section
-                            class="processing-module processing-module--toggleable"
-                            data-toggle-input="reverbEnabled"
-                            tabindex="0"
-                        >
-                            <input
-                                class="module-toggle-input"
-                                type="checkbox"
-                                id="reverbEnabled"
-                                tabindex="-1"
-                            >
+                        <section class="processing-module processing-module--toggleable"
+                            data-toggle-input="reverbEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="reverbEnabled" tabindex="-1">
 
                             <div class="module-heading">
                                 <div>
@@ -648,15 +475,8 @@
                                         Duration
                                         <span id="reverbDurationValue">2.00 s</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="reverbDuration"
-                                        min="0.2"
-                                        max="6"
-                                        value="2"
-                                        step="0.1"
-                                        disabled
-                                    >
+                                    <input type="range" id="reverbDuration" min="0.2" max="6" value="2" step="0.1"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -664,15 +484,8 @@
                                         Decay
                                         <span id="reverbDecayValue">2.0</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="reverbDecay"
-                                        min="0.5"
-                                        max="6"
-                                        value="2"
-                                        step="0.1"
-                                        disabled
-                                    >
+                                    <input type="range" id="reverbDecay" min="0.5" max="6" value="2" step="0.1"
+                                        disabled>
                                 </div>
 
                                 <div class="horizontal-control">
@@ -680,15 +493,8 @@
                                         Wet mix
                                         <span id="reverbMixValue">25%</span>
                                     </label>
-                                    <input
-                                        type="range"
-                                        id="reverbMix"
-                                        min="0"
-                                        max="1"
-                                        value="0.25"
-                                        step="0.01"
-                                        disabled
-                                    >
+                                    <input type="range" id="reverbMix" min="0" max="1" value="0.25" step="0.01"
+                                        disabled>
                                 </div>
                             </div>
 
@@ -711,17 +517,9 @@
 
                     <div class="processing-grid processing-grid--two processing-grid--centered">
                         <!-- Peak Normalization -->
-                        <section
-                            class="processing-module processing-module--toggleable processing-module--final"
-                            data-toggle-input="normalizationEnabled"
-                            tabindex="0"
-                        >
-                            <input
-                                class="module-toggle-input"
-                                type="checkbox"
-                                id="normalizationEnabled"
-                                tabindex="-1"
-                            >
+                        <section class="processing-module processing-module--toggleable processing-module--final"
+                            data-toggle-input="normalizationEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="normalizationEnabled" tabindex="-1">
 
                             <div class="module-heading">
                                 <div>
@@ -747,15 +545,8 @@
                         <!-- Limiter -->
                         <section
                             class="processing-module processing-module--toggleable processing-module--knob processing-module--final"
-                            data-toggle-input="limiterEnabled"
-                            tabindex="0"
-                        >
-                            <input
-                                class="module-toggle-input"
-                                type="checkbox"
-                                id="limiterEnabled"
-                                tabindex="-1"
-                            >
+                            data-toggle-input="limiterEnabled" tabindex="0">
+                            <input class="module-toggle-input" type="checkbox" id="limiterEnabled" tabindex="-1">
 
                             <div class="module-heading">
                                 <div>
@@ -767,23 +558,10 @@
 
                             <div class="rotary-control rotary-control--compact">
                                 <label class="visually-hidden" for="limiterThreshold">Limiter threshold</label>
-                                <input
-                                    class="knob-native-input"
-                                    type="range"
-                                    id="limiterThreshold"
-                                    min="-20"
-                                    max="0"
-                                    value="-1"
-                                    step="0.1"
-                                    disabled
-                                >
-                                <div
-                                    class="rotary-knob"
-                                    data-knob-for="limiterThreshold"
-                                    data-default="-1"
-                                    data-unit=" dBFS"
-                                    tabindex="-1"
-                                >
+                                <input class="knob-native-input" type="range" id="limiterThreshold" min="-20" max="0"
+                                    value="-1" step="0.1" disabled>
+                                <div class="rotary-knob" data-knob-for="limiterThreshold" data-default="-1"
+                                    data-unit=" dBFS" tabindex="-1">
                                     <span class="rotary-knob__indicator"></span>
                                 </div>
                                 <div class="knob-scale"><span>-20</span><span>0</span></div>
@@ -829,6 +607,27 @@
         </section>
 
     </main>
+
+    <footer class="app-footer">
+        <div class="app-footer__content">
+            <div class="app-footer__identity">
+                <p class="app-footer__project">Web Programming for Sound and Music Project</p>
+                <p class="app-footer__student">Riccardo Cambianica</p>
+                <div class="app-footer__details">
+                    <p>Student ID: <span>53147A</span></p>
+                    <p>Institutional email: <span>riccardo.cambianica@studenti.unimi.it</span></p>
+                    <p>Academic year: <span>2025/2026</span></p>
+                </div>
+            </div>
+
+            <p>
+                <a href="https://jigsaw.w3.org/css-validator/check/referer">
+                    <img style="border:0;width:88px;height:31px" src="https://jigsaw.w3.org/css-validator/images/vcss"
+                        alt="CSS Valido!" />
+                </a>
+            </p>
+        </div>
+    </footer>
 
     <script type="module" src="js/app.js"></script>
 

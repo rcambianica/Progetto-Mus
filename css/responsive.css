@@ -110,7 +110,13 @@
     .playback-controls button {
         flex: 1;
     }
+
+    .app-footer__content {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
+
 
 @media (max-width: 430px) {
     .audio-metrics {
