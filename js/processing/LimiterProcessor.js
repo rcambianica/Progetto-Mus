@@ -4,14 +4,6 @@ import {
 } from "../analysis/PeakAnalyzer.js";
 
 const DEFAULT_THRESHOLD_DB = -1;
-
-/*
- * Piccolo margine per compensare l'arrotondamento
- * dei campioni Float32 e della successiva codifica PCM.
- *
- * È sufficientemente piccolo da non essere percepibile
- * e da mostrare comunque, con due decimali, il target scelto.
- */
 const SAFETY_MARGIN_DB = 0.001;
 
 export function createLimiterNode(
@@ -32,16 +24,8 @@ export function createLimiterNode(
             settings?.threshold
         );
 
-    /*
-     * DynamicsCompressorNode consente un ratio
-     * massimo di 20:1.
-     */
     limiter.ratio.value = 20;
 
-    /*
-     * Knee a zero per ottenere un intervento
-     * più netto attorno alla soglia.
-     */
     limiter.knee.value = 0;
 
     limiter.attack.value = 0.001;
@@ -50,13 +34,6 @@ export function createLimiterNode(
     return limiter;
 }
 
-/*
- * Garantisce che nessun sample del buffer superi
- * la soglia configurata.
- *
- * Il controllo viene applicato dopo il rendering
- * attraverso DynamicsCompressorNode.
- */
 export function enforcePeakCeiling(
     audioBuffer,
     thresholdDb
@@ -86,10 +63,6 @@ export function enforcePeakCeiling(
     const currentPeak =
         getPeak(audioBuffer);
 
-    /*
-     * Silenzio o buffer già sufficientemente
-     * sotto la soglia.
-     */
     if (
         currentPeak <= 0 ||
         currentPeak <= safeCeiling
@@ -136,10 +109,6 @@ export function enforcePeakCeiling(
                 sourceData[sampleIndex] *
                 correctiveGain;
 
-            /*
-             * Il clamp è una protezione aggiuntiva
-             * contro eventuali arrotondamenti Float32.
-             */
             destinationData[sampleIndex] =
                 clampSample(
                     correctedSample,
@@ -151,10 +120,6 @@ export function enforcePeakCeiling(
     const correctedPeak =
         getPeak(correctedBuffer);
 
-    /*
-     * Verifica interna: in condizioni normali
-     * non dovrebbe mai fallire.
-     */
     if (
         correctedPeak >
         requestedCeiling

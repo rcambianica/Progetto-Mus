@@ -46,9 +46,6 @@ export function createReverbEffect(
             sanitizedSettings.decay
         );
 
-    /*
-     * Equal-power dry/wet crossfade.
-     */
     const mixAngle =
         sanitizedSettings.mix *
         Math.PI / 2;
@@ -59,11 +56,9 @@ export function createReverbEffect(
     wetGain.gain.value =
         Math.sin(mixAngle);
 
-    /* Dry path: input -> dry gain -> output */
     input.connect(dryGain);
     dryGain.connect(output);
 
-    /* Wet path: input -> convolver -> wet gain -> output */
     input.connect(convolver);
     convolver.connect(wetGain);
     wetGain.connect(output);

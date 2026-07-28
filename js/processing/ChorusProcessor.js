@@ -69,28 +69,13 @@ export function createChorusEffect(
         sanitizedSettings.depthMs /
         1000;
 
-    /*
-     * Dry path:
-     *
-     * input → dryGain → output
-     */
     input.connect(dryGain);
     dryGain.connect(output);
 
-    /*
-     * Wet path:
-     *
-     * input → short delay → wetGain → output
-     */
     input.connect(delayNode);
     delayNode.connect(wetGain);
     wetGain.connect(output);
-
-    /*
-     * Modulation path:
-     *
-     * sine LFO → depth gain → delayTime
-     */
+    
     lfo.connect(lfoGain);
     lfoGain.connect(
         delayNode.delayTime

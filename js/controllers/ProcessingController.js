@@ -89,10 +89,7 @@ export class ProcessingController {
     }
 
     resetProcessedAudio() {
-        /*
-         * Invalida anche un eventuale rendering
-         * ancora in corso sulla sorgente precedente.
-         */
+        //Invalida anche un eventuale rendering ancora in corso sulla sorgente precedente
         this.renderJobId += 1;
 
         this.playbackController.resetTrack(

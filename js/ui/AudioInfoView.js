@@ -95,8 +95,7 @@ function renderMetricElements(
     elements,
     audioInfo
 ) {
-    // La posizione corrente è aggiornata dal PlaybackController.
-    // Qui mostriamo soltanto la durata effettiva del buffer.
+    // La posizione corrente è aggiornata dal PlaybackController. Qui mostro soltanto la durata effettiva del buffer
     elements.duration.textContent =
         formatDuration(audioInfo.durationMs);
 

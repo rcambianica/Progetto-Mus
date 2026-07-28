@@ -64,11 +64,6 @@ test(
                                 0
                             ),
 
-                        /*
-                         * Non leggiamo un singolo campione:
-                         * cerchiamo il picco in una finestra
-                         * di ±10 ms.
-                         */
                         firstEcho:
                             getPeakInWindow(
                                 outputBuffer,
@@ -144,10 +139,6 @@ test(
             2
         );
 
-        /*
-         * Verifica anche che gli echi si trovino
-         * nelle finestre temporali previste.
-         */
         expect(
             result.firstEcho.timeSeconds
         ).toBeGreaterThanOrEqual(
@@ -290,30 +281,18 @@ test(
                 }
             );
 
-        /*
-         * Con mix zero nessun eco è udibile.
-         */
         expect(
             result.noWetSignal
         ).toBe(0);
 
-        /*
-         * Con feedback zero esiste un solo eco.
-         */
         expect(
             result.noFeedback
         ).toBe(0.25);
 
-        /*
-         * La durata deve essere positiva.
-         */
         expect(
             result.feedbackHalf
         ).toBeGreaterThan(0);
 
-        /*
-         * Il codice limita la coda a 15 secondi.
-         */
         expect(
             result.maximumTail
         ).toBeLessThanOrEqual(15);

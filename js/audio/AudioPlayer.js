@@ -47,9 +47,7 @@ export class AudioPlayer {
         this.source = source;
 
         source.onended = () => {
-            // Un nodo fermato per pausa, stop o seek può emettere
-            // comunque `ended`. Ignoriamo gli eventi appartenenti
-            // a una source che non è più quella attiva.
+            // Un nodo fermato per pausa, stop o seek può emettere comunque `ended`, quindi gnoriamo gli eventi appartenenti a una source che non è più quella attiva.
             if (this.source !== source) {
                 return;
             }
@@ -111,8 +109,7 @@ export class AudioPlayer {
         this.stopSourceOnly();
         this.isPlaying = false;
 
-        // Se il seek porta esattamente alla fine, non viene creata
-        // una nuova source priva di contenuto da riprodurre.
+        // Se il seek porta esattamente alla fine, non viene creata una nuova source priva di contenuto da riprodurre.
         if (clampedMs >= durationMs) {
             return;
         }

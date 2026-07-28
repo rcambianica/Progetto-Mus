@@ -3,10 +3,6 @@ const {
     expect
 } = require("@playwright/test");
 
-/**
- * Genera in memoria un file WAV PCM mono a 16 bit.
- * Non serve conservare un file audio nella repository.
- */
 function createTestWav({
     durationSeconds = 0.2,
     sampleRate = 48_000,
@@ -437,12 +433,6 @@ test(
             }
         );
 
-        /*
-         * Il checkbox è nascosto graficamente perché
-         * la UI usa l'intera card come controllo.
-         * check({ force: true }) genera comunque
-         * gli eventi input/change previsti.
-         */
         await page
             .locator(
                 "#delayEnabled"
@@ -500,9 +490,6 @@ test(
             "0:00.100"
         );
 
-        /*
-         * Input di 100 ms + un eco di 100 ms.
-         */
         await expect(
             page.locator(
                 "#processedDuration"

@@ -12,11 +12,6 @@ module.exports = defineConfig({
         timeout: 5_000
     },
 
-    /*
-     * In locale usa il parallelismo normale.
-     * In CI un worker solo rende più stabili
-     * soprattutto i test Web Audio.
-     */
     workers:
         process.env.CI
             ? 1

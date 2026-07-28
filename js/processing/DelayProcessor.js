@@ -103,11 +103,8 @@ export function calculateDelayTailSeconds(
     const mix =
         sanitizedSettings.mix;
 
-    /*
-     * Con il percorso wet completamente silenziato
-     * nessuna ripetizione è udibile e non serve
-     * estendere il buffer offline.
-     */
+    // Con il percorso wet completamente silenziato nessuna ripetizione è udibile e non serve estendere il buffer offline
+     
     if (mix <= 0) {
         return 0;
     }
@@ -116,19 +113,12 @@ export function calculateDelayTailSeconds(
         return 0;
     }
 
-    /*
-     * Anche con feedback = 0 esiste almeno
-     * una ripetizione ritardata.
-     */
+    // Anche con feedback = 0 esiste almeno una ripetizione ritardata
     if (feedback <= 0) {
         return delayTime;
     }
 
-    /*
-     * Calcoliamo quante ripetizioni servono
-     * affinché l'ampiezza scenda sotto 0.001,
-     * equivalente a circa -60 dB.
-     */
+    // Calcolo quante ripetizioni per portare l'ampiezza sotto 0.001, equivalente a circa -60 dB
     const minimumAmplitude = 0.001;
 
     const repetitions =
@@ -137,10 +127,6 @@ export function calculateDelayTailSeconds(
             Math.log(feedback)
         ) + 1;
 
-    /*
-     * Evitiamo di creare buffer offline
-     * eccessivamente lunghi.
-     */
     return Math.min(
         delayTime * repetitions,
         15

@@ -1,7 +1,4 @@
-/*
- * Main stylesheet entry point.
- * Keep the imports in this order because later files contain intentional overrides.
- */
+/*entry point principale per i file css*/
 
 @import url("./variables.css");
 @import url("./base.css");

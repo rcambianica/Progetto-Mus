@@ -81,10 +81,6 @@ test("CompressorProcessor configura e limita i parametri del DynamicsCompressorN
     expect(result.clamped.attack).toBe(result.limits.attackMax);
     expect(result.clamped.release).toBe(result.limits.releaseMin);
 
-    /*
-     * La funzione clamp del progetto usa il minimo del parametro
-     * come fallback per i valori non numerici.
-     */
     expect(result.invalid.threshold).toBe(result.limits.thresholdMin);
     expect(result.invalid.ratio).toBe(result.limits.ratioMin);
     expect(result.invalid.attack).toBe(result.limits.attackMin);
@@ -160,13 +156,6 @@ test("CompressorProcessor mantiene lineare il rapporto tra segnali sotto soglia"
     });
 
     expect(result.finite).toBe(true);
-
-    /*
-     * Entrambi i segnali restano sotto la soglia.
-     * Il secondo ha ampiezza doppia e deve mantenere
-     * un RMS di uscita doppio, anche se l'implementazione
-     * del browser applica un eventuale makeup gain.
-     */
     expect(
         result.louderRms / result.quietRms
     ).toBeCloseTo(2, 3);

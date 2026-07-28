@@ -1,4 +1,4 @@
-/* Responsive overrides. Keep this file imported last. */
+/* Modulo che gestisce la proprietà responsive degli elementi*/
 
 @media (max-width: 1250px) {
     .processing-grid--four {

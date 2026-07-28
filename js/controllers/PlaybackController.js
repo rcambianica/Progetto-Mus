@@ -150,17 +150,14 @@ export class PlaybackController {
                 ? timeSeconds * 1000
                 : 0;
 
-        // AudioPlayer usa AudioBufferSourceNode: il seek viene quindi
-        // applicato al player Web Audio e non al media element di WaveSurfer.
+        // AudioPlayer usa AudioBufferSourceNode: il seek viene quindi applicato al player Web Audio e non al media element di WaveSurfer
         track.player.seek(timeMs);
 
         track.syncWaveformToTime(
             track.player.getCurrentTimeMs()
         );
 
-        // Il seek durante la riproduzione sostituisce
-        // l'AudioBufferSourceNode. Riavviamo esplicitamente il
-        // ciclo grafico per mantenerlo associato allo stato corrente.
+        // Il seek durante la riproduzione sostituisce l'AudioBufferSourceNode. Riavviamo esplicitamente il ciclo grafico per mantenerlo associato allo stato corrente
         if (track.player.isPlaying) {
             this.startAnimation(track);
         } else {

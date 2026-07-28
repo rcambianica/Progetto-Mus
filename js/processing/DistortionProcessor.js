@@ -48,11 +48,7 @@ export function createDistortionEffect(
     waveShaper.oversample =
         sanitizedSettings.oversample;
 
-    /*
-     * Equal-power dry/wet crossfade.
-     * This keeps the perceived level more stable
-     * while the mix parameter changes.
-     */
+    
     const mixAngle =
         sanitizedSettings.mix *
         Math.PI / 2;
@@ -63,11 +59,9 @@ export function createDistortionEffect(
     wetGain.gain.value =
         Math.sin(mixAngle);
 
-    /* Dry path: input -> dryGain -> output */
     input.connect(dryGain);
     dryGain.connect(output);
 
-    /* Wet path: input -> WaveShaper -> wetGain -> output */
     input.connect(waveShaper);
     waveShaper.connect(wetGain);
     wetGain.connect(output);
