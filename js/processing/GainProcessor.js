@@ -1,17 +1,17 @@
 export function createGainNode(audioContext, gainValue) {
-    const gainNode = audioContext.createGain();
+  const gainNode = audioContext.createGain();
 
-    gainNode.gain.value = sanitizeGainValue(gainValue);
+  gainNode.gain.value = sanitizeGainValue(gainValue);
 
-    return gainNode;
+  return gainNode;
 }
 
 export function sanitizeGainValue(value) {
-    const numericValue = Number(value);
+  const numericValue = Number(value);
 
-    if (!Number.isFinite(numericValue)) {
-        return 1;
-    }
+  if (!Number.isFinite(numericValue)) {
+    return 1;
+  }
 
-    return Math.max(0, Math.min(numericValue, 4));
+  return Math.max(0, Math.min(numericValue, 4));
 }

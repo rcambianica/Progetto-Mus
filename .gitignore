@@ -1,7 +1,9 @@
 node_modules/
 playwright-report/
 test-results/
+.vscode/
 *.aux
 *.log
 *.out
 *.synctex.gz
+.prettierrc

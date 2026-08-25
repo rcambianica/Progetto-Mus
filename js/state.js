@@ -1,154 +1,154 @@
 export const state = {
-    audioContext: null,
+  audioContext: null,
 
-    originalFile: null,
-    originalBuffer: null,
-    processedBuffer: null,
+  originalFile: null,
+  originalBuffer: null,
+  processedBuffer: null,
 
-    originalInfo: {
-        durationMs: 0,
-        sampleRate: 0,
-        numberOfChannels: 0,
-        peakLinear: 0,
-        peakDb: -Infinity
+  originalInfo: {
+    durationMs: 0,
+    sampleRate: 0,
+    numberOfChannels: 0,
+    peakLinear: 0,
+    peakDb: -Infinity,
+  },
+
+  processedInfo: {
+    durationMs: 0,
+    sampleRate: 0,
+    numberOfChannels: 0,
+    peakLinear: 0,
+    peakDb: -Infinity,
+  },
+
+  processingSettings: {
+    gain: {
+      enabled: true,
+      value: 1.0,
     },
 
-    processedInfo: {
-        durationMs: 0,
-        sampleRate: 0,
-        numberOfChannels: 0,
-        peakLinear: 0,
-        peakDb: -Infinity
+    normalization: {
+      enabled: false,
+      targetDb: -1,
     },
 
-    processingSettings: {
-        gain: {
-            enabled: true,
-            value: 1.0
-        },
+    compressor: {
+      enabled: false,
+      threshold: -24,
+      ratio: 4,
+      attack: 0.003,
+      release: 0.25,
+    },
 
-        normalization: {
-            enabled: false,
-            targetDb: -1
-        },
+    distortion: {
+      enabled: false,
+      drive: 25,
+      mix: 0.35,
+      oversample: "4x",
+    },
 
-        compressor: {
-            enabled: false,
-            threshold: -24,
-            ratio: 4,
-            attack: 0.003,
-            release: 0.25
-        },
+    chorus: {
+      enabled: false,
+      rate: 0.5,
+      depthMs: 10,
+      mix: 0.25,
+      baseDelayMs: 20,
+    },
 
-        distortion: {
-            enabled: false,
-            drive: 25,
-            mix: 0.35,
-            oversample: "4x"
-        },
+    limiter: {
+      enabled: false,
+      threshold: -1,
+    },
 
-        chorus: {
-            enabled: false,
-            rate: 0.5,
-            depthMs: 10,
-            mix: 0.25,
-            baseDelayMs: 20
-        },
+    eq: {
+      enabled: false,
 
-        limiter: {
-            enabled: false,
-            threshold: -1
-        },
+      lowGain: 0,
+      midGain: 0,
+      highGain: 0,
 
-        eq: {
-            enabled: false,
+      lowFrequency: 250,
+      midFrequency: 1000,
+      highFrequency: 5000,
 
-            lowGain: 0,
-            midGain: 0,
-            highGain: 0,
+      midQ: 1,
+    },
 
-            lowFrequency: 250,
-            midFrequency: 1000,
-            highFrequency: 5000,
+    delay: {
+      enabled: false,
+      time: 0.25,
+      feedback: 0.3,
+      mix: 0.25,
+    },
 
-            midQ: 1
-        },
-
-        delay: {
-            enabled: false,
-            time: 0.25,
-            feedback: 0.3,
-            mix: 0.25
-        },
-
-        reverb: {
-            enabled: false,
-            duration: 2,
-            decay: 2,
-            mix: 0.25
-        }
-    }
+    reverb: {
+      enabled: false,
+      duration: 2,
+      decay: 2,
+      mix: 0.25,
+    },
+  },
 };
 
 const listeners = new Set();
 
 export function subscribe(listener) {
-    listeners.add(listener);
+  listeners.add(listener);
 
-    return function unsubscribe() {
-        listeners.delete(listener);
-    };
+  return function unsubscribe() {
+    listeners.delete(listener);
+  };
 }
 
 export function notifyStateChanged() {
-    for (const listener of listeners) {
-        listener(state);
-    }
+  for (const listener of listeners) {
+    listener(state);
+  }
 }
 
 export function setAudioContext(audioContext) {
-    state.audioContext = audioContext;
-    notifyStateChanged();
+  state.audioContext = audioContext;
+  notifyStateChanged();
 }
 
 export function setOriginalFile(file) {
-    state.originalFile = file;
-    notifyStateChanged();
+  state.originalFile = file;
+  notifyStateChanged();
 }
 
 export function setOriginalBuffer(audioBuffer) {
-    state.originalBuffer = audioBuffer;
-    notifyStateChanged();
+  state.originalBuffer = audioBuffer;
+  notifyStateChanged();
 }
 
 export function setProcessedBuffer(audioBuffer) {
-    state.processedBuffer = audioBuffer;
-    notifyStateChanged();
+  state.processedBuffer = audioBuffer;
+  notifyStateChanged();
 }
 
 export function setOriginalInfo(info) {
-    state.originalInfo = {
-        ...state.originalInfo,
-        ...info
-    };
+  state.originalInfo = {
+    ...state.originalInfo,
+    ...info,
+  };
 
-    notifyStateChanged();
+  notifyStateChanged();
 }
 
 export function setProcessedInfo(info) {
-    state.processedInfo = {
-        ...state.processedInfo,
-        ...info
-    };
+  state.processedInfo = {
+    ...state.processedInfo,
+    ...info,
+  };
 
-    notifyStateChanged();
+  notifyStateChanged();
 }
 
 export function updateProcessingSettings(section, values) {
-    state.processingSettings[section] = {
-        ...state.processingSettings[section],
-        ...values
-    };
+  state.processingSettings[section] = {
+    ...state.processingSettings[section],
+    ...values,
+  };
 
-    notifyStateChanged();
+  notifyStateChanged();
 }
