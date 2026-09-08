@@ -1,66 +1,62 @@
-import { state, subscribe } from "./state.js";
+import { state, subscribe } from './state.js';
 
-import { initializeRotaryKnobs, refreshAllRotaryKnobs } from "./ui/RotaryKnob.js";
+import { initializeRotaryKnobs, refreshAllRotaryKnobs } from './ui/RotaryKnob.js';
 
-import {
-  initializeWaveSurfers,
-  syncOriginalWaveSurferToTime,
-  syncProcessedWaveSurferToTime,
-} from "./ui/WaveSurferView.js";
+import { initializeWaveSurfers, syncOriginalWaveSurferToTime, syncProcessedWaveSurferToTime } from './ui/WaveSurferView.js';
 
-import { renderAudioInfo } from "./ui/AudioInfoView.js";
+import { renderAudioInfo } from './ui/AudioInfoView.js';
 
-import { PlaybackController } from "./controllers/PlaybackController.js";
+import { PlaybackController } from './controllers/PlaybackController.js';
 
-import { AudioInputController } from "./controllers/AudioInputController.js";
+import { AudioInputController } from './controllers/AudioInputController.js';
 
-import { ProcessingController } from "./controllers/ProcessingController.js";
+import { ProcessingController } from './controllers/ProcessingController.js';
 
-import { ExportController } from "./controllers/ExportController.js";
+import { ExportController } from './controllers/ExportController.js';
 
 const playbackController = new PlaybackController({
-  syncOriginalWaveformToTime: syncOriginalWaveSurferToTime,
+    syncOriginalWaveformToTime: syncOriginalWaveSurferToTime,
 
-  syncProcessedWaveformToTime: syncProcessedWaveSurferToTime,
+    syncProcessedWaveformToTime: syncProcessedWaveSurferToTime,
 });
 
 const exportController = new ExportController();
 
 const processingController = new ProcessingController({
-  playbackController,
-  exportController,
+    playbackController,
+    exportController,
 });
 
 const audioInputController = new AudioInputController({
-  playbackController,
-  processingController,
+    playbackController,
+    processingController,
 });
 
-document.addEventListener("DOMContentLoaded", initializeApp);
+document.addEventListener('DOMContentLoaded', initializeApp);
 
 function initializeApp() {
-  initializeWaveSurfers({
-    onOriginalSeek: (timeSeconds) => playbackController.seekTrack("original", timeSeconds),
+    initializeWaveSurfers({
+        onOriginalSeek: (timeSeconds) => playbackController.seekTrack('original', timeSeconds),
 
-    onProcessedSeek: (timeSeconds) => playbackController.seekTrack("processed", timeSeconds),
-  });
+        onProcessedSeek: (timeSeconds) => playbackController.seekTrack('processed', timeSeconds),
+    });
 
-  playbackController.bind();
-  processingController.bind();
-  audioInputController.bind();
-  exportController.bind();
+    playbackController.bind();
+    processingController.bind();
+    audioInputController.bind();
+    exportController.bind();
 
-  initializeRotaryKnobs();
+    initializeRotaryKnobs();
 
-  subscribe(render);
-  render(state);
+    subscribe(render);
+    render(state);
 }
 
 function render(currentState) {
-  renderAudioInfo(currentState);
-  playbackController.render();
-  processingController.render();
-  exportController.render();
+    renderAudioInfo(currentState);
+    playbackController.render();
+    processingController.render();
+    exportController.render();
 
-  refreshAllRotaryKnobs();
+    refreshAllRotaryKnobs();
 }

@@ -76,8 +76,8 @@
 	
 	\section{Architettura software}
 	
-	Il codice è suddiviso in moduli con responsabilità definite. \texttt{app.js} svolge il solo bootstrap: inizializza l'\texttt{AudioContext}, crea controller e viste e collega i callback principali. Lo stato condiviso conserva i buffer originale e processato, le informazioni di analisi e le impostazioni dei moduli.
-	
+	Il codice è suddiviso in moduli con responsabilità definite. \texttt{app.js} svolge il solo bootstrap: crea controller e viste e collega i callback principali. Lo stato condiviso conserva i buffer originale e processato, le informazioni di analisi e le impostazioni dei moduli.
+	L'\texttt{AudioContext} viene creato in maniera \textbf{lazy}, cioè solo quando necessario, da \texttt{getAudioContext}.
 	\begin{table}[h]
 		\centering
 		\small
@@ -94,7 +94,7 @@
 		\end{tabularx}
 	\end{table}
 	
-	La separazione è importante soprattutto nel processing: il controller non contiene le formule degli effetti e il renderer non conosce i dettagli dell'interfaccia. Ogni processore espone funzioni per creare i nodi e, quando necessario, per stimare la coda temporale dell'effetto. Questo rende più semplice testare singolarmente gain, equalizzatore, compressore, distorsione, chorus, delay, riverbero, normalizzatore e limiter.
+	La separazione è importante soprattutto nel processing: il controller non contiene le formule degli effetti e il renderer non conosce i dettagli dell'interfaccia. Ogni processore espone funzioni per creare i nodi e, quando necessario, per stimare la coda temporale dell'effetto. Questa scelta implementativa rende più semplice testare singolarmente gain, equalizzatore, compressore, distorsione, chorus, delay, riverbero, normalizzatore e limiter.
 	
 	\section{Flusso operativo e scelte di interfaccia}
 	
@@ -103,7 +103,7 @@
 	Una prima versione della parte d'interfaccia dedicata all'audio processing prevedeva l'utilizzo di uno slider orizzontale per dividere i tre gruppi di card utilizzabili.
 	Ho ritenuto più user-friendly la versione finale presente, anche grazie al feedback fornito da famigliari/amici a cui ho chiesto di utilizzare il progetto.
 	
-	Originale e processato non vengono riprodotti contemporaneamente in modo automatico: i due player restano indipendenti per consentire un confronto intenzionale. La posizione viene mostrata accanto ai pulsanti Play/Pause e Stop, mentre le quattro metriche tecniche restano separate sopra il player. Il messaggio di stato comunica se il risultato è valido, se il rendering è in corso oppure se le impostazioni sono cambiate dopo l'ultima elaborazione. L'export viene abilitato soltanto nello stato coerente.
+	Gli audio Originale e processato non vengono riprodotti contemporaneamente in modo automatico: i due player restano indipendenti per consentire un confronto intenzionale. La posizione viene mostrata accanto ai pulsanti Play/Pause e Stop, mentre le quattro metriche tecniche restano separate sopra il player. Il messaggio di stato comunica se il risultato è valido, se il rendering è in corso oppure se le impostazioni sono cambiate dopo l'ultima elaborazione. L'export viene abilitato soltanto nello stato coerente.
 	
 	Tutte le operazioni vengono eseguite nel browser. I file scelti, la registrazione e i buffer intermedi non vengono caricati su un server. Questo riduce i requisiti infrastrutturali e mantiene il contenuto audio sul dispositivo dell'utente. L'uso di moduli locali per WaveSurfer evita inoltre dipendenze di rete durante l'esecuzione normale e facilità l'utilizzo e il test del progetto partendo dal source code.
 	

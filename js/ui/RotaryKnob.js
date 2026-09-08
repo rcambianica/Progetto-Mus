@@ -1,269 +1,269 @@
 const knobControllers = new Map();
 
 export function initializeRotaryKnobs() {
-  const knobElements = document.querySelectorAll("[data-knob-for]");
+    const knobElements = document.querySelectorAll('[data-knob-for]');
 
-  for (const knobElement of knobElements) {
-    const inputId = knobElement.dataset.knobFor;
+    for (const knobElement of knobElements) {
+        const inputId = knobElement.dataset.knobFor;
 
-    const inputElement = document.getElementById(inputId);
+        const inputElement = document.getElementById(inputId);
 
-    if (!inputElement) {
-      console.warn(`Rotary knob input not found: ${inputId}`);
+        if (!inputElement) {
+            console.warn(`Rotary knob input not found: ${inputId}`);
 
-      continue;
+            continue;
+        }
+
+        if (knobControllers.has(inputId)) {
+            continue;
+        }
+
+        const controller = createRotaryKnobController(knobElement, inputElement);
+
+        knobControllers.set(inputId, controller);
+
+        inputElement.addEventListener('input', controller.refresh);
+
+        inputElement.addEventListener('change', controller.refresh);
+
+        controller.refresh();
     }
-
-    if (knobControllers.has(inputId)) {
-      continue;
-    }
-
-    const controller = createRotaryKnobController(knobElement, inputElement);
-
-    knobControllers.set(inputId, controller);
-
-    inputElement.addEventListener("input", controller.refresh);
-
-    inputElement.addEventListener("change", controller.refresh);
-
-    controller.refresh();
-  }
 }
 
 export function refreshAllRotaryKnobs() {
-  for (const controller of knobControllers.values()) {
-    controller.refresh();
-  }
+    for (const controller of knobControllers.values()) {
+        controller.refresh();
+    }
 }
 
 function createRotaryKnobController(knobElement, inputElement) {
-  let activePointerId = null;
-  let startX = 0;
-  let startY = 0;
-  let startValue = 0;
+    let activePointerId = null;
+    let startX = 0;
+    let startY = 0;
+    let startValue = 0;
 
-  function refresh() {
-    const minimum = getMinimum(inputElement);
+    function refresh() {
+        const minimum = getMinimum(inputElement);
 
-    const maximum = getMaximum(inputElement);
+        const maximum = getMaximum(inputElement);
 
-    const value = clamp(Number(inputElement.value), minimum, maximum);
+        const value = clamp(Number(inputElement.value), minimum, maximum);
 
-    const ratio = maximum === minimum ? 0 : (value - minimum) / (maximum - minimum);
+        const ratio = maximum === minimum ? 0 : (value - minimum) / (maximum - minimum);
 
-    const angle = -135 + ratio * 270;
+        const angle = -135 + ratio * 270;
 
-    knobElement.style.setProperty("--knob-angle", `${angle}deg`);
+        knobElement.style.setProperty('--knob-angle', `${angle}deg`);
 
-    knobElement.style.setProperty("--knob-progress", `${ratio * 270}deg`);
+        knobElement.style.setProperty('--knob-progress', `${ratio * 270}deg`);
 
-    knobElement.classList.toggle("is-disabled", inputElement.disabled);
+        knobElement.classList.toggle('is-disabled', inputElement.disabled);
 
-    knobElement.tabIndex = inputElement.disabled ? -1 : 0;
-  }
-
-  function setValue(requestedValue, commit = false) {
-    if (inputElement.disabled) {
-      return;
+        knobElement.tabIndex = inputElement.disabled ? -1 : 0;
     }
 
-    const minimum = getMinimum(inputElement);
+    function setValue(requestedValue, commit = false) {
+        if (inputElement.disabled) {
+            return;
+        }
 
-    const maximum = getMaximum(inputElement);
+        const minimum = getMinimum(inputElement);
 
-    const step = getStep(inputElement);
+        const maximum = getMaximum(inputElement);
 
-    const clampedValue = clamp(requestedValue, minimum, maximum);
+        const step = getStep(inputElement);
 
-    const stepCount = Math.round((clampedValue - minimum) / step);
+        const clampedValue = clamp(requestedValue, minimum, maximum);
 
-    const steppedValue = minimum + stepCount * step;
+        const stepCount = Math.round((clampedValue - minimum) / step);
 
-    const precision = getDecimalPrecision(step);
+        const steppedValue = minimum + stepCount * step;
 
-    inputElement.value = String(Number(steppedValue.toFixed(precision)));
+        const precision = getDecimalPrecision(step);
 
-    inputElement.dispatchEvent(
-      new Event("input", {
-        bubbles: true,
-      }),
-    );
+        inputElement.value = String(Number(steppedValue.toFixed(precision)));
 
-    if (commit) {
-      inputElement.dispatchEvent(
-        new Event("change", {
-          bubbles: true,
-        }),
-      );
+        inputElement.dispatchEvent(
+            new Event('input', {
+                bubbles: true,
+            })
+        );
+
+        if (commit) {
+            inputElement.dispatchEvent(
+                new Event('change', {
+                    bubbles: true,
+                })
+            );
+        }
+
+        refresh();
     }
 
-    refresh();
-  }
+    function beginDrag(event) {
+        if (inputElement.disabled) {
+            return;
+        }
 
-  function beginDrag(event) {
-    if (inputElement.disabled) {
-      return;
+        event.preventDefault();
+
+        activePointerId = event.pointerId;
+
+        startX = event.clientX;
+
+        startY = event.clientY;
+
+        startValue = Number(inputElement.value);
+
+        knobElement.setPointerCapture(activePointerId);
+
+        knobElement.classList.add('is-dragging');
+
+        knobElement.focus();
     }
 
-    event.preventDefault();
+    function continueDrag(event) {
+        if (activePointerId === null || event.pointerId !== activePointerId) {
+            return;
+        }
 
-    activePointerId = event.pointerId;
+        const verticalMovement = startY - event.clientY;
 
-    startX = event.clientX;
+        const horizontalMovement = event.clientX - startX;
 
-    startY = event.clientY;
+        const movement = verticalMovement + horizontalMovement;
 
-    startValue = Number(inputElement.value);
+        const valueRange = getMaximum(inputElement) - getMinimum(inputElement);
 
-    knobElement.setPointerCapture(activePointerId);
+        const requestedValue = startValue + movement * (valueRange / 240);
 
-    knobElement.classList.add("is-dragging");
-
-    knobElement.focus();
-  }
-
-  function continueDrag(event) {
-    if (activePointerId === null || event.pointerId !== activePointerId) {
-      return;
+        setValue(requestedValue);
     }
 
-    const verticalMovement = startY - event.clientY;
+    function endDrag(event) {
+        if (activePointerId === null || event.pointerId !== activePointerId) {
+            return;
+        }
 
-    const horizontalMovement = event.clientX - startX;
+        if (knobElement.hasPointerCapture(activePointerId)) {
+            knobElement.releasePointerCapture(activePointerId);
+        }
 
-    const movement = verticalMovement + horizontalMovement;
+        activePointerId = null;
 
-    const valueRange = getMaximum(inputElement) - getMinimum(inputElement);
+        knobElement.classList.remove('is-dragging');
 
-    const requestedValue = startValue + movement * (valueRange / 240);
-
-    setValue(requestedValue);
-  }
-
-  function endDrag(event) {
-    if (activePointerId === null || event.pointerId !== activePointerId) {
-      return;
+        inputElement.dispatchEvent(
+            new Event('change', {
+                bubbles: true,
+            })
+        );
     }
 
-    if (knobElement.hasPointerCapture(activePointerId)) {
-      knobElement.releasePointerCapture(activePointerId);
+    function handleKeyboard(event) {
+        if (inputElement.disabled) {
+            return;
+        }
+
+        const currentValue = Number(inputElement.value);
+
+        const step = getStep(inputElement);
+
+        let nextValue = null;
+
+        switch (event.key) {
+            case 'ArrowUp':
+            case 'ArrowRight':
+                nextValue = currentValue + step;
+                break;
+
+            case 'ArrowDown':
+            case 'ArrowLeft':
+                nextValue = currentValue - step;
+                break;
+
+            case 'PageUp':
+                nextValue = currentValue + step * 10;
+                break;
+
+            case 'PageDown':
+                nextValue = currentValue - step * 10;
+                break;
+
+            case 'Home':
+                nextValue = getMinimum(inputElement);
+                break;
+
+            case 'End':
+                nextValue = getMaximum(inputElement);
+                break;
+
+            default:
+                return;
+        }
+
+        event.preventDefault();
+
+        setValue(nextValue, true);
     }
 
-    activePointerId = null;
+    function resetToDefault() {
+        if (inputElement.disabled) {
+            return;
+        }
 
-    knobElement.classList.remove("is-dragging");
+        const defaultValue = Number(knobElement.dataset.default ?? inputElement.defaultValue);
 
-    inputElement.dispatchEvent(
-      new Event("change", {
-        bubbles: true,
-      }),
-    );
-  }
-
-  function handleKeyboard(event) {
-    if (inputElement.disabled) {
-      return;
+        setValue(defaultValue, true);
     }
 
-    const currentValue = Number(inputElement.value);
+    knobElement.addEventListener('pointerdown', beginDrag);
 
-    const step = getStep(inputElement);
+    knobElement.addEventListener('pointermove', continueDrag);
 
-    let nextValue = null;
+    knobElement.addEventListener('pointerup', endDrag);
 
-    switch (event.key) {
-      case "ArrowUp":
-      case "ArrowRight":
-        nextValue = currentValue + step;
-        break;
+    knobElement.addEventListener('pointercancel', endDrag);
 
-      case "ArrowDown":
-      case "ArrowLeft":
-        nextValue = currentValue - step;
-        break;
+    knobElement.addEventListener('keydown', handleKeyboard);
 
-      case "PageUp":
-        nextValue = currentValue + step * 10;
-        break;
+    knobElement.addEventListener('dblclick', resetToDefault);
 
-      case "PageDown":
-        nextValue = currentValue - step * 10;
-        break;
-
-      case "Home":
-        nextValue = getMinimum(inputElement);
-        break;
-
-      case "End":
-        nextValue = getMaximum(inputElement);
-        break;
-
-      default:
-        return;
-    }
-
-    event.preventDefault();
-
-    setValue(nextValue, true);
-  }
-
-  function resetToDefault() {
-    if (inputElement.disabled) {
-      return;
-    }
-
-    const defaultValue = Number(knobElement.dataset.default ?? inputElement.defaultValue);
-
-    setValue(defaultValue, true);
-  }
-
-  knobElement.addEventListener("pointerdown", beginDrag);
-
-  knobElement.addEventListener("pointermove", continueDrag);
-
-  knobElement.addEventListener("pointerup", endDrag);
-
-  knobElement.addEventListener("pointercancel", endDrag);
-
-  knobElement.addEventListener("keydown", handleKeyboard);
-
-  knobElement.addEventListener("dblclick", resetToDefault);
-
-  return {
-    refresh,
-  };
+    return {
+        refresh,
+    };
 }
 
 function getMinimum(inputElement) {
-  const minimum = Number(inputElement.min);
+    const minimum = Number(inputElement.min);
 
-  return Number.isFinite(minimum) ? minimum : 0;
+    return Number.isFinite(minimum) ? minimum : 0;
 }
 
 function getMaximum(inputElement) {
-  const maximum = Number(inputElement.max);
+    const maximum = Number(inputElement.max);
 
-  return Number.isFinite(maximum) ? maximum : 100;
+    return Number.isFinite(maximum) ? maximum : 100;
 }
 
 function getStep(inputElement) {
-  const step = Number(inputElement.step);
+    const step = Number(inputElement.step);
 
-  return Number.isFinite(step) && step > 0 ? step : 1;
+    return Number.isFinite(step) && step > 0 ? step : 1;
 }
 
 function getDecimalPrecision(value) {
-  const valueString = String(value);
+    const valueString = String(value);
 
-  if (valueString.includes("e-")) {
-    return Number(valueString.split("e-")[1]);
-  }
+    if (valueString.includes('e-')) {
+        return Number(valueString.split('e-')[1]);
+    }
 
-  const decimalPart = valueString.split(".")[1];
+    const decimalPart = valueString.split('.')[1];
 
-  return decimalPart ? decimalPart.length : 0;
+    return decimalPart ? decimalPart.length : 0;
 }
 
 function clamp(value, minimum, maximum) {
-  return Math.max(minimum, Math.min(value, maximum));
+    return Math.max(minimum, Math.min(value, maximum));
 }

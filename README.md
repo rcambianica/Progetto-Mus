@@ -1,7 +1,3 @@
-# Audio Processing and Mastering
-
-Applicazione web client-side basata sulla Web Audio API. Permette di caricare o registrare un segnale audio, applicare una catena di elaborazione offline, confrontare il risultato con la sorgente originale ed esportare l'audio processato in formato WAV PCM a 16 bit.
-
 ## Requisiti
 
 Per eseguire l'applicazione sono necessari:
@@ -18,29 +14,8 @@ L'applicazione utilizza moduli JavaScript ES6 e non deve essere aperta direttame
 
 1. Estrarre l'archivio del progetto.
 2. Aprire un terminale nella cartella principale, cioè nella cartella che contiene `index.html`.
-3. Avviare un server HTTP locale:
-
-```bash
-python3 -m http.server 8000 --bind 127.0.0.1
-```
-
-4. Aprire nel browser:
-
-```text
-http://127.0.0.1:8000
-```
-
-Per interrompere il server, tornare nel terminale e premere `Ctrl+C`.
-
-### Alternativa con Node.js
-
-Quando Python 3 non è disponibile, è possibile usare un server locale basato su Node.js:
-
-```bash
-npx serve . --listen 8000
-```
-
-Aprire quindi l'indirizzo mostrato nel terminale.
+3. Avviare un server HTTP locale
+4. Aprire nel browser: http://127.0.0.1:8000
 
 ## Utilizzo dell'applicazione
 
@@ -132,7 +107,6 @@ Il risultato viene esportato come file WAV PCM lineare a 16 bit. Tutte le operaz
 ## Test automatici
 
 I test sono realizzati con Playwright e non sono necessari per usare l'applicazione.
-
 Per prepararli, installare Node.js e npm, quindi eseguire dalla cartella principale:
 
 ```bash
@@ -164,14 +138,16 @@ npx playwright test --project=chromium
 ## Struttura principale
 
 ```text
-css/            fogli di stile
-favicon/        icone del sito
-js/analysis/    analisi delle proprietà del segnale
-js/audio/       caricamento, playback, registrazione, rendering ed export
-js/controllers/ coordinamento delle funzioni dell'applicazione
-js/processing/  moduli della catena di elaborazione
-js/ui/          gestione dell'interfaccia e delle waveform
-lib/            dipendenze JavaScript incluse localmente
-tests/          test automatici Playwright
-index.html      pagina principale
+css/                fogli di stile
+favicon/            icone del sito
+js/analysis/        analisi delle proprietà del segnale
+js/audio/           caricamento, playback, registrazione, rendering ed export
+js/controllers/     coordinamento delle funzioni dell'applicazione
+js/processing/      moduli della catena di elaborazione
+js/ui/              gestione dell'interfaccia e delle waveform
+lib/                dipendenze JavaScript incluse localmente
+relazione tecnica/  breve relazione tecnica da 4 pagine
+tests/              test automatici Playwright
+index.html          pagina principale
+file .json          files di configurazione e gestione dipendenze per playwright
 ```
