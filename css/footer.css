@@ -1,86 +1,86 @@
 /* Footer e badge CSS validator */
 
 .app-footer {
-  margin-top: clamp(1rem, 3vw, 2.5rem);
-  border-top: 1px solid rgb(191 219 254 / 28%);
-  background: linear-gradient(120deg, rgb(15 23 42 / 98%), rgb(30 64 175 / 94%)), #0f172a;
-  color: #e2e8f0;
+    margin-top: clamp(1rem, 3vw, 2.5rem);
+    border-top: 1px solid rgb(191 219 254 / 28%);
+    background: linear-gradient(120deg, rgb(15 23 42 / 98%), rgb(30 64 175 / 94%)), #0f172a;
+    color: #e2e8f0;
 }
 
 .app-footer__content {
-  width: min(1460px, 100%);
-  margin: 0 auto;
-  padding: 1.35rem clamp(1rem, 4vw, 3rem);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
+    width: min(1460px, 100%);
+    margin: 0 auto;
+    padding: 1.35rem clamp(1rem, 4vw, 3rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
 }
 
 .app-footer__identity {
-  min-width: 0;
+    min-width: 0;
 }
 
 .app-footer__project {
-  margin-bottom: 0.25rem;
-  color: #93c5fd;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+    margin-bottom: 0.25rem;
+    color: #93c5fd;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .app-footer__student {
-  margin-bottom: 0.55rem;
-  color: #ffffff;
-  font-size: 1rem;
-  font-weight: 800;
+    margin-bottom: 0.55rem;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 800;
 }
 
 .app-footer__details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1.15rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.15rem;
 }
 
 .app-footer__details p {
-  margin: 0;
-  color: #cbd5e1;
-  font-size: 0.78rem;
-  line-height: 1.45;
+    margin: 0;
+    color: #cbd5e1;
+    font-size: 0.78rem;
+    line-height: 1.45;
 }
 
 .app-footer__details span {
-  color: #f8fafc;
+    color: #f8fafc;
 }
 
 .app-footer__validation {
-  flex: 0 0 auto;
-  display: inline-flex;
-  padding: 0.35rem;
-  border: 1px solid rgb(191 219 254 / 42%);
-  border-radius: 6px;
-  background: rgb(255 255 255 / 8%);
-  transition:
-    border-color 150ms ease,
-    background-color 150ms ease,
-    transform 150ms ease;
+    flex: 0 0 auto;
+    display: inline-flex;
+    padding: 0.35rem;
+    border: 1px solid rgb(191 219 254 / 42%);
+    border-radius: 6px;
+    background: rgb(255 255 255 / 8%);
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease,
+        transform 150ms ease;
 }
 
 .app-footer__validation:hover {
-  border-color: #93c5fd;
-  background: rgb(255 255 255 / 14%);
-  transform: translateY(-1px);
+    border-color: #93c5fd;
+    background: rgb(255 255 255 / 14%);
+    transform: translateY(-1px);
 }
 
 .app-footer__validation:focus-visible {
-  outline: 3px solid rgb(147 197 253 / 45%);
-  outline-offset: 3px;
+    outline: 3px solid rgb(147 197 253 / 45%);
+    outline-offset: 3px;
 }
 
 .app-footer__validation img {
-  display: block;
-  width: 88px;
-  height: 31px;
-  border: 0;
+    display: block;
+    width: 88px;
+    height: 31px;
+    border: 0;
 }

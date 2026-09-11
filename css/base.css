@@ -1,83 +1,83 @@
 /* Reset globale, stile tipografia e controlli nativi */
 
 * {
-  box-sizing: border-box;
+    box-sizing: border-box;
 }
 
 html {
-  min-width: 320px;
-  background: var(--page-background);
+    min-width: 320px;
+    background: var(--page-background);
 }
 
 body {
-  min-height: 100vh;
-  margin: 0;
-  background: radial-gradient(circle at top left, rgb(37 99 235 / 8%), transparent 34rem), var(--page-background);
-  color: var(--text);
+    min-height: 100vh;
+    margin: 0;
+    background: radial-gradient(circle at top left, rgb(37 99 235 / 8%), transparent 34rem), var(--page-background);
+    color: var(--text);
 }
 
 button,
 input,
 select {
-  font: inherit;
+    font: inherit;
 }
 
 button,
-input[type="file"],
+input[type='file'],
 select {
-  border-radius: var(--radius-small);
+    border-radius: var(--radius-small);
 }
 
 button {
-  min-height: 2.6rem;
-  padding: 0.65rem 1rem;
-  border: 1px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 700;
-  cursor: pointer;
-  transition:
-    border-color 150ms ease,
-    background-color 150ms ease,
-    color 150ms ease,
-    transform 150ms ease,
-    box-shadow 150ms ease;
+    min-height: 2.6rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 700;
+    cursor: pointer;
+    transition:
+        border-color 150ms ease,
+        background-color 150ms ease,
+        color 150ms ease,
+        transform 150ms ease,
+        box-shadow 150ms ease;
 }
 
 button:hover:not(:disabled) {
-  border-color: #93a4b8;
-  background: #f1f5f9;
-  transform: translateY(-1px);
+    border-color: #93a4b8;
+    background: #f1f5f9;
+    transform: translateY(-1px);
 }
 
 button:focus-visible,
 input:focus-visible,
 select:focus-visible {
-  outline: 3px solid rgb(37 99 235 / 25%);
-  outline-offset: 2px;
+    outline: 3px solid rgb(37 99 235 / 25%);
+    outline-offset: 2px;
 }
 
 button:disabled,
 input:disabled,
 select:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
+    cursor: not-allowed;
+    opacity: 0.5;
 }
 
-input[type="range"] {
-  width: 100%;
-  accent-color: var(--accent);
+input[type='range'] {
+    width: 100%;
+    accent-color: var(--accent);
 }
 
-input[type="text"],
-input[type="file"],
+input[type='text'],
+input[type='file'],
 select {
-  width: 100%;
-  min-height: 2.7rem;
-  padding: 0.65rem 0.75rem;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
+    width: 100%;
+    min-height: 2.7rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
 }
 
 h1,
@@ -85,41 +85,41 @@ h2,
 h3,
 h4,
 p {
-  margin-top: 0;
+    margin-top: 0;
 }
 
 h1,
 h2,
 h3,
 h4 {
-  line-height: 1.18;
+    line-height: 1.18;
 }
 
 h1 {
-  margin-bottom: 0.45rem;
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  letter-spacing: -0.035em;
+    margin-bottom: 0.45rem;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    letter-spacing: -0.035em;
 }
 
 h2 {
-  margin-bottom: 0;
-  font-size: clamp(1.35rem, 2.5vw, 1.8rem);
-  letter-spacing: -0.02em;
+    margin-bottom: 0;
+    font-size: clamp(1.35rem, 2.5vw, 1.8rem);
+    letter-spacing: -0.02em;
 }
 
 h3,
 h4 {
-  margin-bottom: 0;
+    margin-bottom: 0;
 }
 
 h3 {
-  font-size: 1.15rem;
+    font-size: 1.15rem;
 }
 
 h4 {
-  font-size: 1rem;
+    font-size: 1rem;
 }
 
 span {
-  font-weight: 650;
+    font-weight: 650;
 }

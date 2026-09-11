@@ -1,11 +1,11 @@
 /*entry point principale per i file css*/
 
-@import url("./variables.css");
-@import url("./base.css");
-@import url("./layout.css");
-@import url("./audio.css");
-@import url("./processing.css");
-@import url("./controls.css");
-@import url("./components.css");
-@import url("./footer.css");
-@import url("./responsive.css");
+@import url('./variables.css');
+@import url('./base.css');
+@import url('./layout.css');
+@import url('./audio.css');
+@import url('./processing.css');
+@import url('./controls.css');
+@import url('./components.css');
+@import url('./footer.css');
+@import url('./responsive.css');

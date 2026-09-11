@@ -60,6 +60,28 @@ export function createReverbEffect(audioContext, settings = {}) {
     };
 }
 
+/** Basato su https://emanueleferonato.com/2026/01/08/understanding-how-to-use-mulberry32-to-achieve-deterministic-randomness-in-javascript/
+ *  A parità di parametri, la sequenza di numeri casuali generata sarà identica al 100% ogni singola volta.
+ *  Questo garantisce che l'esportazione offline produca un file perfettamente fedele a ciò che l'utente ha ascoltato in preview.
+ *  Usando Math.random, avremmo un rumore diverso e di conseguenza un timbro diverso anche con gli stessi parametri decisi dall'utente, perdendo
+ *  la proprietà della riproducibiltà.
+ */
+function createPseudoRandom(seed) {
+    let state = seed >>> 0;
+
+    return function nextRandom() {
+        state += 0x6d2b79f5;
+
+        let value = state;
+
+        value = Math.imul(value ^ (value >>> 15), value | 1);
+
+        value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+
+        return ((value ^ (value >>> 14)) >>> 0) / 4_294_967_296;
+    };
+}
+
 export function createImpulseResponse(audioContext, duration, decay) {
     const sanitizedSettings = sanitizeReverbSettings({
         duration,
@@ -81,6 +103,8 @@ export function createImpulseResponse(audioContext, duration, decay) {
         const channelData = impulse.getChannelData(channel);
 
         const random = createPseudoRandom(
+            // 0x6d2b79f5 e 0x9e3779b9 sono costanti matematiche (derivate dal Sezione Aurea / Golden Ratio)
+            // usate per distribuire i bit in modo uniforme ed evitare pattern visibili nel rumore
             0x5f3759df + channel * 0x9e3779b9 + Math.round(sanitizedSettings.duration * 1000) + Math.round(sanitizedSettings.decay * 100)
         );
 
@@ -113,22 +137,6 @@ function sanitizeReverbSettings(settings) {
         decay: clamp(Number(settings.decay), MIN_DECAY, MAX_DECAY, DEFAULT_SETTINGS.decay),
 
         mix: clamp(Number(settings.mix), 0, 1, DEFAULT_SETTINGS.mix),
-    };
-}
-
-function createPseudoRandom(seed) {
-    let state = seed >>> 0;
-
-    return function nextRandom() {
-        state += 0x6d2b79f5;
-
-        let value = state;
-
-        value = Math.imul(value ^ (value >>> 15), value | 1);
-
-        value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
-
-        return ((value ^ (value >>> 14)) >>> 0) / 4_294_967_296;
     };
 }
 

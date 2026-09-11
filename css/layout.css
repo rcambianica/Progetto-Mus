@@ -1,66 +1,66 @@
 /* Layout generale */
 
 .app-header {
-  padding: 2.4rem clamp(1rem, 4vw, 3rem);
-  background: linear-gradient(120deg, rgb(15 23 42 / 97%), rgb(30 64 175 / 92%)), #0f172a;
-  color: white;
+    padding: 2.4rem clamp(1rem, 4vw, 3rem);
+    background: linear-gradient(120deg, rgb(15 23 42 / 97%), rgb(30 64 175 / 92%)), #0f172a;
+    color: white;
 }
 
 .app-header__content {
-  width: min(1460px, 100%);
-  margin: 0 auto;
+    width: min(1460px, 100%);
+    margin: 0 auto;
 }
 
 .app-kicker,
 .section-kicker,
 .module-order {
-  margin-bottom: 0.35rem;
-  color: var(--accent);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+    margin-bottom: 0.35rem;
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
 }
 
 .app-kicker {
-  color: #bfdbfe;
+    color: #bfdbfe;
 }
 
 .app-subtitle {
-  max-width: 58rem;
-  margin-bottom: 0;
-  color: #dbeafe;
-  line-height: 1.6;
+    max-width: 58rem;
+    margin-bottom: 0;
+    color: #dbeafe;
+    line-height: 1.6;
 }
 
 .app-layout {
-  width: min(1520px, 100%);
-  margin: 0 auto;
-  padding: clamp(1rem, 3vw, 2.5rem);
-  display: grid;
-  gap: 1.25rem;
+    width: min(1520px, 100%);
+    margin: 0 auto;
+    padding: clamp(1rem, 3vw, 2.5rem);
+    display: grid;
+    gap: 1.25rem;
 }
 
 .panel {
-  min-width: 0;
-  padding: clamp(1rem, 2.5vw, 1.6rem);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-large);
-  background: rgb(255 255 255 / 96%);
-  box-shadow: var(--shadow);
+    min-width: 0;
+    padding: clamp(1rem, 2.5vw, 1.6rem);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-large);
+    background: rgb(255 255 255 / 96%);
+    box-shadow: var(--shadow);
 }
 
 .panel-heading {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-bottom: 1.25rem;
 }
 
 .panel-heading > p {
-  max-width: 44rem;
-  margin: 0;
-  color: var(--text-muted);
-  line-height: 1.55;
+    max-width: 44rem;
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.55;
 }

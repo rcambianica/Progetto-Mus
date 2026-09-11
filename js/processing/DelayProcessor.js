@@ -51,6 +51,7 @@ export function createDelayEffect(audioContext, settings = {}) {
     delayNode.connect(wetGain);
     wetGain.connect(output);
 
+    // Loop tra il feedbackGain e il delayNode
     delayNode.connect(feedbackGain);
     feedbackGain.connect(delayNode);
 
@@ -89,10 +90,14 @@ export function calculateDelayTailSeconds(settings = {}) {
         return delayTime;
     }
 
+    // Soglia inferiore di suono per finire la coda equivale a circa -60 dB
     const minimumAmplitude = 0.001;
 
+    // Il +1 è l'impulso secco iniziale da cui parte la prima ripetizione (il suono originale)
+    // Dato che è probabile ottenere frazioni, arrotondo al valore intero superiore
     const repetitions = Math.ceil(Math.log(minimumAmplitude) / Math.log(feedback)) + 1;
 
+    // Evitiamo di avere una coda troppo lunga mettendo come valore massimo 15s
     return Math.min(delayTime * repetitions, 15);
 }
 
