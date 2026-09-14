@@ -146,7 +146,7 @@ js/controllers/     coordinamento delle funzioni dell'applicazione
 js/processing/      moduli della catena di elaborazione
 js/ui/              gestione dell'interfaccia e delle waveform
 lib/                dipendenze JavaScript incluse localmente
-relazione tecnica/  breve relazione tecnica da 4 pagine
+relazione tecnica/  breve relazione tecnica da 4 pagine e presentazione pptx
 tests/              test automatici Playwright
 index.html          pagina principale
 file .json          files di configurazione e gestione dipendenze per playwright
