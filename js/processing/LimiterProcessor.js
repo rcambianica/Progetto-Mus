@@ -22,6 +22,8 @@ export function createLimiterNode(audioContext, settings) {
     return limiter;
 }
 
+//dopo il controllo dinamico applicato dal compressore, dobbiamo assicurarci che nessun segnale superi il limite massimo impostato dall'utente
+// operazione fatta sul valore lineare, non su dBFS
 export function enforcePeakCeiling(audioBuffer, thresholdDb) {
     if (!audioBuffer) {
         throw new Error('An AudioBuffer is required to enforce the peak ceiling.');
@@ -33,6 +35,7 @@ export function enforcePeakCeiling(audioBuffer, thresholdDb) {
 
     const safeCeiling = dbToLinear(sanitizedThreshold - SAFETY_MARGIN_DB);
 
+    // il picco massimo, in valore assoluto
     const currentPeak = getPeak(audioBuffer);
 
     if (currentPeak <= 0 || currentPeak <= safeCeiling) {
