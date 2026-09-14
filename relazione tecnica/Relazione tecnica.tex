@@ -183,8 +183,11 @@
 	
 	Il principale limite deriva da una scelta implementativa precisa: il processing non è in tempo reale. Ogni modifica richiede un nuovo rendering e non è possibile monitorare immediatamente gli effetti mentre si spostano i controlli. Questa scelta semplifica però il confronto, permette di conservare le code e produce direttamente un buffer esportabile. Un'eventuale evoluzione verso il monitoraggio real-time richiederebbe un secondo grafo connesso alla destinazione, la gestione dinamica degli \texttt{AudioParam} e una sincronizzazione diversa con l'export offline.
 	
-	Il supporto dichiarato è mono/stereo e l'unico formato di esportazione è WAV PCM a 16 bit.
-	In pratica è possibile caricare anche audio multicanale 5.1/7.1, ma per la natura del processo è impossibile effettuare le operazioni di audio processing su tutti i canali.
+	Un'altra possibile evoluzione del progetto potrebbe consistere nell'implementazione delle \texttt{audioWorklets} per gestire i componenti della catena DSP, soprattutto se volesse ampliarla con altri effetti sonori. Ho valutato questa soluzione non necessaria per il tipo di progetto richiesto.
+	
+	Il supporto audio dichiarato è mono/stereo e l'unico formato di esportazione è WAV PCM a 16 bit.
+	In pratica è possibile caricare anche audio multicanale 5.1/7.1 (test pratico superato), ma per la natura del processo è impossibile effettuare le operazioni di audio processing su tutti i canali.
 	La waveform processata viene generata a partire da una codifica WAV e rappresenta quindi la versione quantizzata destinata all'export, mentre il player riproduce direttamente il buffer floating-point. Il sistema non implementa inoltre preset, salvataggio delle sessioni o annullamento delle modifiche.
+	Come feature futura potrebbe essere interessante permettere all'utente di esportare il setting di parametri e valori associati usato durante una sessione di audio processing in formato JSON, così da poterlo riutilizzare in futuro. Ciò permetterebbe una personalizzazione molto veloce ed immediata.
 	
 \end{document}
